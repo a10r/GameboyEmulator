@@ -1,0 +1,108 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{A59527A7-47DB-40A9-8500-618D4DB2EB0B}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>GameboyEmulator.Core</RootNamespace>
+    <AssemblyName>GameboyEmulator.Core</AssemblyName>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Cartridge\Cartridge.cs" />
+    <Compile Include="Emulation\MachineState.cs" />
+    <Compile Include="Memory\AddressableRegisterField.cs" />
+    <Compile Include="Memory\BoolPointer.cs" />
+    <Compile Include="Processor\Cpu.cs" />
+    <Compile Include="Debug\Disassembler.cs" />
+    <Compile Include="Cartridge\ICartridge.cs" />
+    <Compile Include="Emulation\IEmulationControl.cs" />
+    <Compile Include="Processor\InstructionLookahead.cs" />
+    <Compile Include="Processor\InstructionPrimitives.cs" />
+    <Compile Include="Processor\InstructionUtils.cs" />
+    <Compile Include="Emulation\EmulationEngine.cs" />
+    <Compile Include="Memory\MemorySink.cs" />
+    <Compile Include="Memory\ShadowedMemoryBlock.cs" />
+    <Compile Include="Memory\TopLevelMemoryMap.cs" />
+    <Compile Include="Debug\DebugUtils.cs" />
+    <Compile Include="Processor\RegisterName.cs" />
+    <Compile Include="Utils\BitUtils.cs" />
+    <Compile Include="Memory\FlagRegister.cs" />
+    <Compile Include="Memory\IFlags.cs" />
+    <Compile Include="Memory\IMemoryBlock.cs" />
+    <Compile Include="Processor\Instructions.cs" />
+    <Compile Include="Emulation\IMachineState.cs" />
+    <Compile Include="Memory\IReadonlyRegister.cs" />
+    <Compile Include="Memory\IRegister.cs" />
+    <Compile Include="Memory\IRegisterField.cs" />
+    <Compile Include="Memory\IStack.cs" />
+    <Compile Include="Memory\IWriteonlyRegister.cs" />
+    <Compile Include="Processor\JumpCondition.cs" />
+    <Compile Include="Memory\MemoryBlock.cs" />
+    <Compile Include="Memory\MemoryLocation.cs" />
+    <Compile Include="Memory\PairedRegister.cs" />
+    <Compile Include="Memory\Register.cs" />
+    <Compile Include="Memory\RegisterField.cs" />
+    <Compile Include="Memory\Stack.cs" />
+    <Compile Include="Debug\LoggingMemoryBlock.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Video\Framebuffer.cs" />
+    <Compile Include="Video\ITilemap.cs" />
+    <Compile Include="Video\LcdController.cs" />
+    <Compile Include="Video\LcdControlRegister.cs" />
+    <Compile Include="Video\LcdStatusRegister.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
