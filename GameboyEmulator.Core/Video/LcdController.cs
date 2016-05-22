@@ -16,7 +16,7 @@ namespace GameboyEmulator.Core.Video
 
     public class LcdController : IFrameSource
     {
-        private readonly Bitmap _framebuffer;
+        private readonly Framebuffer _framebuffer;
 
         private readonly LcdControlRegister _lcdc;
         private readonly LcdStatusRegister _stat;
@@ -39,7 +39,7 @@ namespace GameboyEmulator.Core.Video
         {
             System.Diagnostics.Debug.Assert(vram.Size == 8192);
             System.Diagnostics.Debug.Assert(oam.Size == 120);
-            _framebuffer = new Bitmap(160, 144, PixelFormat.Format24bppRgb);
+            _framebuffer = new Framebuffer(160, 144);
             _lcdc = lcdc;
             _stat = stat;
             _scx = scx;
@@ -130,22 +130,22 @@ namespace GameboyEmulator.Core.Video
             // Slow as fk
             //_framebuffer.SetPixel(j, i, color);
 
-            var data = _framebuffer.LockBits(new Rectangle(0, 0, _framebuffer.Width, _framebuffer.Height),
-                ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
-            var stride = data.Stride;
-            unsafe
-            {
-                var ptr = (byte*)data.Scan0;
-                for (var x = 0; x < 160; x++)
-                {
-                    var pixelOffset = x * 3 + y * stride;
-                    ptr[pixelOffset] = color.R;
-                    ptr[pixelOffset + 1] = color.G;
-                    ptr[pixelOffset + 2] = color.B;
-                }
-            }
+            //var data = _framebuffer.LockBits(new Rectangle(0, 0, _framebuffer.Width, _framebuffer.Height),
+            //    ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
+            //var stride = data.Stride;
+            //unsafe
+            //{
+            //    var ptr = (byte*)data.Scan0;
+            //    for (var x = 0; x < 160; x++)
+            //    {
+            //        var pixelOffset = x * 3 + y * stride;
+            //        ptr[pixelOffset] = color.R;
+            //        ptr[pixelOffset + 1] = color.G;
+            //        ptr[pixelOffset + 2] = color.B;
+            //    }
+            //}
 
-            _framebuffer.UnlockBits(data);
+            //_framebuffer.UnlockBits(data);
         }
         
         private void RenderScanline(int i)
@@ -162,48 +162,38 @@ namespace GameboyEmulator.Core.Video
             var tileIndex = _vram[tilemapOffset + mapY * 32 + mapX];
             var tileY = globalRow & 7; // static!
             var tileX = _scx.Value & 7;
-
-            var data = _framebuffer.LockBits(new Rectangle(0, 0, _framebuffer.Width, _framebuffer.Height),
-                ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
-            var stride = data.Stride;
-            unsafe
+            
+            for (var x = 0; x < 160; x++)
             {
-                var ptr = (byte*)data.Scan0;
-                for (var x = 0; x < 160; x++)
-                {
-                    var lower = _vram[tilesetOffset + tileIndex * 16 + tileY * 2];
-                    var upper = _vram[tilesetOffset + tileIndex * 16 + tileY * 2 + 1];
+                var lower = _vram[tilesetOffset + tileIndex * 16 + tileY * 2];
+                var upper = _vram[tilesetOffset + tileIndex * 16 + tileY * 2 + 1];
                     
-                    var shade = (upper.GetBit(7-tileX) ? 2 : 0) + (lower.GetBit(7-tileX) ? 1 : 0);
+                var shade = (upper.GetBit(7-tileX) ? 2 : 0) + (lower.GetBit(7-tileX) ? 1 : 0);
 
-                    // TODO: use proper palette
-                    shade = 4 - shade;
-                    var color = Color.FromArgb(shade*60, shade*60, shade*60);
+                // TODO: use proper palette
+                shade = 4 - shade;
+                var color = Color.FromArgb(shade*60, shade*60, shade*60);
+                
+                _framebuffer.Data[x, i].R = color.R;
+                _framebuffer.Data[x, i].G = color.G;
+                _framebuffer.Data[x, i].B = color.B;
 
-                    var pixelOffset = x * 3 + i * stride;
-                    ptr[pixelOffset] = color.R;
-                    ptr[pixelOffset + 1] = color.G;
-                    ptr[pixelOffset + 2] = color.B;
+                tileX++;
 
-                    tileX++;
-
-                    if (tileX == 8)
-                    {
-                        tileX = 0;
-                        mapX++;
-                        tileIndex = _vram[tilemapOffset + mapY * 32 + mapX];
-                    }
+                if (tileX == 8)
+                {
+                    tileX = 0;
+                    mapX++;
+                    tileIndex = _vram[tilemapOffset + mapY * 32 + mapX];
                 }
             }
-
-            _framebuffer.UnlockBits(data);
         }
 
         public event EventHandler<FrameEventArgs> NewFrame;
 
         private void OnCompletedFrame()
         {
-            NewFrame?.Invoke(this, new FrameEventArgs {Frame = (Bitmap)_framebuffer.Clone()});
+            NewFrame?.Invoke(this, new FrameEventArgs {Frame = _framebuffer});
         }
     }
 
@@ -214,6 +204,6 @@ namespace GameboyEmulator.Core.Video
 
     public class FrameEventArgs : EventArgs
     {
-        public Bitmap Frame { get; set; }
+        public Framebuffer Frame { get; set; }
     }
 }

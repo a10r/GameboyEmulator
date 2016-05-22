@@ -35,8 +35,22 @@ namespace GameboyEmulator.UI
                 Application.Instance.AsyncInvoke(() =>
                 {
                     var stream = new MemoryStream();
-                    args.Frame.Save(stream, ImageFormat.Bmp);
-                    imageView.Image = new Bitmap(stream);
+                    //args.Frame.Save(stream);
+                    var bitmap = new Bitmap(new Size(160, 144), PixelFormat.Format24bppRgb);
+                    var bitmapData = bitmap.Lock();
+
+                    for (int x = 0; x < 160; x++)
+                    {
+                        for (int y = 0; y < 144; y++)
+                        {
+                            var pixel = args.Frame.Data[x, y];
+                            bitmapData.SetPixel(x, y, Color.FromArgb(pixel.R, pixel.G, pixel.B, 255));
+                        }
+                    }
+
+                    bitmapData.Dispose();
+
+                    imageView.Image = bitmap;
                 });
             };
 
