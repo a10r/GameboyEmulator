@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Drawing;
-using System.Drawing.Imaging;
 using GameboyEmulator.Core.Memory;
 using GameboyEmulator.Core.Utils;
 

@@ -39,8 +39,8 @@ namespace GameboyEmulator.Core.Emulation
 
             var memoryMap = new TopLevelMemoryMap(
                 new ShadowedMemoryBlock(
-                    MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG_ROM.bin"),
-                    MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/Tetris.gb")
+                    MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/DMG_ROM.bin"),
+                    MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/Tetris.gb")
                     ),
                 new MemorySink(),
                 vram,
