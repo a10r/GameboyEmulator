@@ -1,6 +1,7 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Threading;
-using GameboyEmulator.Core.Debug;
+using GameboyEmulator.Core.Debugger;
 using GameboyEmulator.Core.Memory;
 using GameboyEmulator.Core.Processor;
 using GameboyEmulator.Core.Video;
@@ -48,7 +49,7 @@ namespace GameboyEmulator.Core.Emulation
                 oam,
                 io);
 
-            _logger = TextWriter.Null;
+            _logger = Console.Out;
             State = new MachineState(new RegisterField(), memoryMap);
             _loggingState = new MachineState(State.Registers,
                 new LoggingMemoryBlock(State.Memory, _logger));
@@ -67,11 +68,6 @@ namespace GameboyEmulator.Core.Emulation
 
         public void Step()
         {
-            //var nextInstr = Disassembler.DisassembleInstruction(InstructionLookahead.Passive(_state));
-
-            //_logger.WriteLine();
-            //_logger.WriteLine($"--- PC = 0x{_state.Registers.PC.Value:X4}; {nextInstr.Text} ---");
-
             var cycles = Cpu.ExecuteNextInstruction(State);
             ElapsedCycles += cycles;
 
@@ -83,17 +79,43 @@ namespace GameboyEmulator.Core.Emulation
             //_logger.WriteLine(_state.Registers.ToString());
         }
 
+        private void LogInstruction()
+        {
+            var nextInstr = Disassembler.DisassembleInstruction(InstructionLookahead.Passive(State));
+
+            _logger.WriteLine();
+            _logger.WriteLine($"--- PC = 0x{State.Registers.PC.Value:X4}; {nextInstr.Text} ---");
+
+        }
+
         public void Run()
         {
             runLoop:
-            while (Running && State.Registers.PC.Value < 0x100)
+            while (Running)
             {
-                Step();
+                //if (State.Registers.PC.Value > 0x100)
+                //{
+                //    LogInstruction();
+                //}
+
+                try
+                {
+                    Step();
+                }
+                catch (Exception e)
+                {
+                    _logger.WriteLine(e.ToString());
+                }
             }
+
+            Console.WriteLine("step over");
+
+            //State.Registers.PC.Value = 0; // reset
 
             while (!Running)
             {
                 Thread.Sleep(1000);
+                Console.WriteLine("paused");
             }
 
             goto runLoop;

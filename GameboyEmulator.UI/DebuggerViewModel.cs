@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Text;
-using GameboyEmulator.Core.Debug;
+using GameboyEmulator.Core.Debugger;
 using GameboyEmulator.Core.Emulation;
 using GameboyEmulator.Core.Processor;
 

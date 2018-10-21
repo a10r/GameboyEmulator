@@ -23,13 +23,13 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
     <LangVersion>7.3</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
-    <Optimize>false</Optimize>
+    <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
@@ -56,7 +56,7 @@
     <Compile Include="Memory\AddressableRegisterField.cs" />
     <Compile Include="Memory\BoolPointer.cs" />
     <Compile Include="Processor\Cpu.cs" />
-    <Compile Include="Debug\Disassembler.cs" />
+    <Compile Include="Debugger\Disassembler.cs" />
     <Compile Include="Cartridge\ICartridge.cs" />
     <Compile Include="Emulation\IEmulationControl.cs" />
     <Compile Include="Processor\InstructionLookahead.cs" />
@@ -66,7 +66,7 @@
     <Compile Include="Memory\MemorySink.cs" />
     <Compile Include="Memory\ShadowedMemoryBlock.cs" />
     <Compile Include="Memory\TopLevelMemoryMap.cs" />
-    <Compile Include="Debug\DebugUtils.cs" />
+    <Compile Include="Debugger\DebugUtils.cs" />
     <Compile Include="Processor\RegisterName.cs" />
     <Compile Include="Utils\BitUtils.cs" />
     <Compile Include="Memory\FlagRegister.cs" />
@@ -86,7 +86,7 @@
     <Compile Include="Memory\Register.cs" />
     <Compile Include="Memory\RegisterField.cs" />
     <Compile Include="Memory\Stack.cs" />
-    <Compile Include="Debug\LoggingMemoryBlock.cs" />
+    <Compile Include="Debugger\LoggingMemoryBlock.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Video\Framebuffer.cs" />
     <Compile Include="Video\ITilemap.cs" />

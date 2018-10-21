@@ -4,8 +4,6 @@ using System.Threading.Tasks;
 using Eto.Drawing;
 using Eto.Forms;
 using GameboyEmulator.Core.Emulation;
-using GameboyEmulator.Core.Video;
-using ImageFormat = System.Drawing.Imaging.ImageFormat;
 
 namespace GameboyEmulator.UI
 {

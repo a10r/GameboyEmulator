@@ -8,7 +8,7 @@ using Eto.Forms;
 using Eto.Drawing;
 using GameboyEmulator.Core.Emulation;
 using GameboyEmulator.Core.Processor;
-using GameboyEmulator.Core.Debug;
+using GameboyEmulator.Core.Debugger;
 
 namespace GameboyEmulator.UI.Controls
 {
