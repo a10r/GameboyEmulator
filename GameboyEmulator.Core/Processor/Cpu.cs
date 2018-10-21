@@ -902,8 +902,7 @@ namespace GameboyEmulator.Core.Processor
                 #region DI
                 case 0xF3:
                     {
-                        throw new NotImplementedException();
-                        // DISABLE INTERRUTPS
+                        m.InterruptMasterEnable = false;
                         return 4;
                     }
                 #endregion
@@ -911,7 +910,7 @@ namespace GameboyEmulator.Core.Processor
                 #region EI
                 case 0xFB:
                     {
-                        throw new NotImplementedException();
+                        m.InterruptMasterEnable = true;
                         return 4;
                     }
                 #endregion

@@ -7,6 +7,7 @@ namespace GameboyEmulator.Core.Emulation
         public IRegisterField Registers { get; }
         public IMemoryBlock Memory { get; }
         public IStack Stack { get; }
+        public bool InterruptMasterEnable { get; set; }
 
         public MachineState(IRegisterField registers, IMemoryBlock memory)
         {
