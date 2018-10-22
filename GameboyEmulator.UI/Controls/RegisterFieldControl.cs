@@ -23,8 +23,8 @@ namespace GameboyEmulator.UI.Controls
                 Cells =
                 {
                     RegisterLabel("A"),
-                    RegisterBox8(),
-                    RegisterBox8(),
+                    RegisterBox8(_registerField.A),
+                    RegisterBox8(_registerField.F),
                     RegisterLabel("F"),
                 },
             });
@@ -34,8 +34,8 @@ namespace GameboyEmulator.UI.Controls
                 Cells =
                 {
                     RegisterLabel("B"),
-                    RegisterBox8(),
-                    RegisterBox8(),
+                    RegisterBox8(_registerField.B),
+                    RegisterBox8(_registerField.C),
                     RegisterLabel("C"),
                 },
             });
@@ -45,8 +45,8 @@ namespace GameboyEmulator.UI.Controls
                 Cells =
                 {
                     RegisterLabel("D"),
-                    RegisterBox8(),
-                    RegisterBox8(),
+                    RegisterBox8(_registerField.D),
+                    RegisterBox8(_registerField.E),
                     RegisterLabel("E"),
                 },
             });
@@ -56,8 +56,8 @@ namespace GameboyEmulator.UI.Controls
                 Cells =
                 {
                     RegisterLabel("H"),
-                    RegisterBox8(),
-                    RegisterBox8(),
+                    RegisterBox8(_registerField.H),
+                    RegisterBox8(_registerField.L),
                     RegisterLabel("L"),
                 },
             });
@@ -72,7 +72,7 @@ namespace GameboyEmulator.UI.Controls
                 Cells =
                 {
                     RegisterLabel("PC"),
-                    RegisterBox16(),
+                    RegisterBox16(_registerField.PC),
                     new TableCell { ScaleWidth = true },
                 },
             });
@@ -82,7 +82,7 @@ namespace GameboyEmulator.UI.Controls
                 Cells =
                 {
                     RegisterLabel("SP"),
-                    RegisterBox16(),
+                    RegisterBox16(_registerField.SP),
                     new TableCell { ScaleWidth = true },
                 },
             });
@@ -104,9 +104,9 @@ namespace GameboyEmulator.UI.Controls
             };
         }
 
-        private Control RegisterBox8()
+        private Control RegisterBox8(IRegister<byte> reg)
         {
-            return new TextBox
+            var box = new TextBox
             {
                 Enabled = false,
                 Text = "00",
@@ -114,11 +114,15 @@ namespace GameboyEmulator.UI.Controls
                 Width = 26,
                 Style = "data-field",
             };
+
+            box.TextBinding.Bind(() => reg.Value.ToString("X2"));
+
+            return box;
         }
 
-        private Control RegisterBox16()
+        private Control RegisterBox16(IRegister<ushort> reg)
         {
-            return new TextBox
+            var box = new TextBox
             {
                 Enabled = false,
                 Text = "FFFF",
@@ -126,6 +130,10 @@ namespace GameboyEmulator.UI.Controls
                 Width = 46,
                 Style = "data-field",
             };
+
+            box.TextBinding.Bind(() => reg.Value.ToString("X4"));
+
+            return box;
         }
     }
 }

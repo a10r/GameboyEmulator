@@ -9,14 +9,13 @@ namespace GameboyEmulator.UI
 {
     public class DebuggerViewModel : INotifyPropertyChanged
     {
-        private readonly IMachineState _state;
         private readonly IEmulationControl _emulationControl;
         private string _disassembedProgramText;
         private bool _emulationIsRunning;
 
         public DebuggerViewModel(IMachineState state, IEmulationControl emulationControl)
         {
-            _state = state;
+            State = state;
             _emulationControl = emulationControl;
             Refresh();
         }
@@ -41,6 +40,8 @@ namespace GameboyEmulator.UI
             }
         }
 
+        public IMachineState State { get; }
+
         public event PropertyChangedEventHandler PropertyChanged;
         
         private string DisassembleAndFormat(int instructionCount)
@@ -48,10 +49,10 @@ namespace GameboyEmulator.UI
             var sb = new StringBuilder();
             sb.Append("{\\rtf1 ");
 
-            var currentAddress = _state.Registers.PC.Value;
+            var currentAddress = State.Registers.PC.Value;
             for (var i = 0; i < instructionCount; i++)
             {
-                var lookahead = _state.Memory.InstructionAt(currentAddress);
+                var lookahead = State.Memory.InstructionAt(currentAddress);
                 var instruction = Disassembler.DisassembleInstruction(lookahead);
                 sb.Append($"{{\\b 0x{currentAddress:X4}:}} {instruction.Text}");
                 sb.Append(" \\line ");
@@ -85,6 +86,7 @@ namespace GameboyEmulator.UI
         {
             DisassembedProgramText = DisassembleAndFormat(10);
             EmulationIsRunning = _emulationControl.Running;
+            OnPropertyChanged("State");
         }
 
         private void OnPropertyChanged([CallerMemberName] string propertyName = null)

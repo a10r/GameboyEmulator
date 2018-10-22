@@ -7,6 +7,8 @@ namespace GameboyEmulator.UI
 {
     public class DebugWindow : Form
     {
+        private readonly RegisterFieldControl _registerFieldControl;
+
         public DebugWindow(DebuggerViewModel viewModel)
         {
             Title = "Debugger";
@@ -71,7 +73,16 @@ namespace GameboyEmulator.UI
 
             layout.EndVertical();
 
-            layout.Add(new RegisterFieldControl(new RegisterField()));
+            _registerFieldControl = new RegisterFieldControl(viewModel.State.Registers);
+            layout.Add(_registerFieldControl);
+
+            viewModel.PropertyChanged += (s, e) =>
+            {
+                if (e.PropertyName == "State")
+                {
+                    _registerFieldControl.UpdateBindings(BindingUpdateMode.Destination);
+                }
+            };
 
             layout.EndHorizontal();
 
