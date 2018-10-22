@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+# Visual Studio 15
+VisualStudioVersion = 15.0.28010.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameboyEmulator.Core", "GameboyEmulator.Core\GameboyEmulator.Core.csproj", "{A59527A7-47DB-40A9-8500-618D4DB2EB0B}"
 EndProject
@@ -10,6 +10,11 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameboyEmulator.UI", "GameboyEmulator.UI\GameboyEmulator.UI.csproj", "{A5BDDD62-013D-450E-B41C-79F3614BFDE6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameboyEmulator.Console", "GameboyEmulator.Console\GameboyEmulator.Console.csproj", "{8683C6B0-175F-4C24-80AD-F0F51405B810}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{943EF005-F63C-4078-B51F-5AFA2A44899A}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -36,5 +41,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C6273C6C-0B04-4CBD-8614-1098D4E3EE66}
 	EndGlobalSection
 EndGlobal

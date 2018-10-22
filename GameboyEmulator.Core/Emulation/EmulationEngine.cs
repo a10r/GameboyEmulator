@@ -16,6 +16,8 @@ namespace GameboyEmulator.Core.Emulation
 
         public EmulationEngine()
         {
+            _logger = Console.Out;
+
             var vram = new MemoryBlock(8192);
             var oam = new MemoryBlock(120);
             var io = new AddressableRegisterField(256);
@@ -30,7 +32,7 @@ namespace GameboyEmulator.Core.Emulation
             var stat = new LcdStatusRegister();
             var scy = new Register<byte>();
             var scx = new Register<byte>();
-            var ly = new Register<byte>();
+            var ly = new LoggingRegister<byte>(new Register<byte>(), "ly", _logger);
 
             io.Add(0x40, lcdc);
             io.Add(0x41, stat);
@@ -49,7 +51,6 @@ namespace GameboyEmulator.Core.Emulation
                 oam,
                 io);
 
-            _logger = Console.Out;
             State = new MachineState(new RegisterField(), memoryMap);
             _loggingState = new MachineState(State.Registers,
                 new LoggingMemoryBlock(State.Memory, _logger));

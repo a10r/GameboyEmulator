@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Drawing;
 using GameboyEmulator.Core.Memory;
 using GameboyEmulator.Core.Utils;
@@ -22,7 +23,7 @@ namespace GameboyEmulator.Core.Video
 
         private readonly IRegister<byte> _scx;
         private readonly IRegister<byte> _scy;
-        private readonly IRegister<byte> _scanline;
+        private readonly IRegister<byte> _scanline; // ly
         private readonly IMemoryBlock _vram;
         private readonly IMemoryBlock _oam;
         
@@ -36,8 +37,8 @@ namespace GameboyEmulator.Core.Video
             IMemoryBlock vram, 
             IMemoryBlock oam)
         {
-            System.Diagnostics.Debug.Assert(vram.Size == 8192);
-            System.Diagnostics.Debug.Assert(oam.Size == 120);
+            Debug.Assert(vram.Size == 8192);
+            Debug.Assert(oam.Size == 120);
             _framebuffer = new Framebuffer(160, 144);
             _lcdc = lcdc;
             _stat = stat;
