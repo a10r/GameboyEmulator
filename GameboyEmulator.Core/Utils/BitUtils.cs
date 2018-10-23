@@ -43,6 +43,18 @@ namespace GameboyEmulator.Core.Utils
             }
         }
 
+        public static void SetBit(ref this byte b, int index, bool value)
+        {
+            if (value)
+            {
+                b |= (byte)(1 << index);
+            }
+            else
+            {
+                b &= (byte)(~(1 << index));
+            }
+        }
+
         public static byte GetLow(this ushort s) => (byte)s;
         public static byte GetHigh(this ushort s) => (byte)(s >> 8);
 

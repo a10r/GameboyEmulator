@@ -319,12 +319,11 @@ namespace GameboyEmulator.Core.Processor
             }
         }
         
-        // TODO: needed? looks identical to Call
-        public static void Restart(IRegister<ushort> pc, byte offset, IStack stack)
+        public static void Restart(IRegister<ushort> pc, byte resetOffset, IStack stack)
         {
             stack.Push(pc.Value.GetHigh());
             stack.Push(pc.Value.GetLow());
-            Load(pc, offset);
+            Load(pc, (byte)(resetOffset * 0x08));
         }
 
         public static void Return(IWriteonlyRegister<ushort> pc, IStack stack)

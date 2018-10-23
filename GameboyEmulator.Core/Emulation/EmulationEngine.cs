@@ -59,9 +59,9 @@ namespace GameboyEmulator.Core.Emulation
                     //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/gb-test-roms/cpu_instrs/cpu_instrs.gb"),
                     new BoolPointer(bootromEnable, 0)
                     ),
-                new MemorySink(),
+                new MemoryBlock(8192), // cartridge ram TODO cartridge types!
                 vram,
-                new MemoryBlock(8192),
+                new MemoryBlock(8192), // internal ram
                 oam,
                 io);
 
@@ -69,8 +69,7 @@ namespace GameboyEmulator.Core.Emulation
             _loggingState = new MachineState(State.Registers,
                 new LoggingMemoryBlock(State.Memory, _logger));
             _lcdController = new LcdController(lcdc, stat, scx, scy, ly,
-                vram,
-                oam);
+                vram, oam, @if);
         }
 
         public IMachineState State { get; }
@@ -80,6 +79,8 @@ namespace GameboyEmulator.Core.Emulation
         public long ElapsedCycles { get; private set; }
 
         public bool Running { get; set; }
+
+        private long _c;
 
         public void Step()
         {
@@ -91,7 +92,51 @@ namespace GameboyEmulator.Core.Emulation
                 _lcdController.Tick();
             }
 
-            //_logger.WriteLine(_state.Registers.ToString());
+            //Console.WriteLine($"Scanline: {State.Memory[0xFF44]}");
+
+            // Handle interrupts
+            // TODO: take IE flags into account
+            if (State.InterruptMasterEnable && State.Memory[0xFF0F] != 0 && State.Memory[0x0FFFF] != 0)
+            {
+                var firedInterrupts = (byte)(State.Memory[0xFF0F] & State.Memory[0xFFFF]);
+
+                // Save PC
+                // TODO: push 16 bit values onto the stack in one call
+                var pc = State.Registers.PC.Value;
+                State.Stack.Push(pc.GetHigh());
+                State.Stack.Push(pc.GetLow());
+
+                State.InterruptMasterEnable = false;
+                
+                _logger.WriteLine($"Servicing interrupt ... {Convert.ToString(State.Memory[0xFF0F], 2).PadLeft(8, '0')} {Convert.ToString(State.Memory[0xFFFF], 2).PadLeft(8, '0')} {Convert.ToString(firedInterrupts, 2).PadLeft(8, '0')} {ElapsedCycles - _c}");
+                _c = ElapsedCycles;
+
+                //Running = false;
+
+                if (firedInterrupts.GetBit(0))
+                {
+                    State.Registers.PC.Value = 0x0040;
+                    State.Memory[0xFF0F] = (byte)(State.Memory[0xFF0F] & (255 - 0x1));
+                }
+                else if (firedInterrupts.GetBit(1))
+                {
+                    State.Registers.PC.Value = 0x0048;
+                    State.Memory[0xFF0F] = (byte)(State.Memory[0xFF0F] & (255 - 0x2));
+                }
+                // TODO finish other interrupts
+                else if (firedInterrupts.GetBit(2))
+                {
+                    State.Registers.PC.Value = 0x0050;
+                }
+                else if (firedInterrupts.GetBit(3))
+                {
+                    State.Registers.PC.Value = 0x0058;
+                }
+                else if (firedInterrupts.GetBit(4))
+                {
+                    State.Registers.PC.Value = 0x0060;
+                }
+            }
         }
 
         private void LogInstruction()
@@ -119,18 +164,17 @@ namespace GameboyEmulator.Core.Emulation
                 }
                 catch (Exception e)
                 {
+                    var instr = Disassembler.DisassembleInstruction(InstructionLookahead.Passive(State));
+                    Console.WriteLine($"Exception at instruction: 0x{State.Registers.PC.Value:X2} {instr.Text}");
                     _logger.WriteLine(e.ToString());
                 }
             }
-
-            Console.WriteLine("step over");
 
             //State.Registers.PC.Value = 0; // reset
 
             while (!Running)
             {
                 Thread.Sleep(1000);
-                Console.WriteLine("paused");
             }
 
             goto runLoop;

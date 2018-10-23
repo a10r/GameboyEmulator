@@ -40,7 +40,7 @@ namespace GameboyEmulator.Core.Memory
                 {
                     // Manual says access is prohibited, but actual hardware
                     // seems to mirror internal RAM here.
-                    throw new InvalidOperationException("Illegal read.");
+                    return _internalRam[address - 0xE000];
                 }
                 if (address < 0xFEA0)
                 {
@@ -80,7 +80,7 @@ namespace GameboyEmulator.Core.Memory
                 {
                     // Manual says access is prohibited, but actual hardware
                     // seems to mirror internal RAM here.
-                    throw new InvalidOperationException("Illegal write.");
+                    _internalRam[address - 0xE000] = value;
                 }
                 else if (address < 0xFEA0)
                 {

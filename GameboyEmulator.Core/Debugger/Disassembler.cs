@@ -910,9 +910,8 @@ namespace GameboyEmulator.Core.Debugger
                 case 0xF7:
                 case 0xFF:
                     {
-                        // TODO
-                        var t = next();
-                        return new Instruction("RST t", count);
+                        var resetAddr = (byte)(((opcode & 0b0011_1000) >> 3) * 0x08);
+                        return new Instruction($"RST 0x{resetAddr:X2}", count);
                     }
 
                 #endregion
@@ -990,7 +989,8 @@ namespace GameboyEmulator.Core.Debugger
                 #endregion
 
                 default:
-                    throw new InvalidOperationException("Invalid opcode.");
+                    return new Instruction("???", 1);
+                    //throw new InvalidOperationException("Invalid opcode.");
             }
         }
 

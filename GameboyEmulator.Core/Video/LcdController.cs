@@ -26,16 +26,21 @@ namespace GameboyEmulator.Core.Video
         private readonly IRegister<byte> _scanline; // ly
         private readonly IMemoryBlock _vram;
         private readonly IMemoryBlock _oam;
-        
+        private readonly IRegister<byte> _if; // TODO: only take one flag
         private int _counter;
+
+        private long _globalCounter;
+        private long _lastVblank;
         
-        public LcdController(LcdControlRegister lcdc, 
+        public LcdController(
+            LcdControlRegister lcdc, 
             LcdStatusRegister stat,
             IRegister<byte> scx,
             IRegister<byte> scy,
             IRegister<byte> ly,
             IMemoryBlock vram, 
-            IMemoryBlock oam)
+            IMemoryBlock oam,
+            IRegister<byte> @if)
         {
             Debug.Assert(vram.Size == 8192);
             Debug.Assert(oam.Size == 160);
@@ -48,6 +53,7 @@ namespace GameboyEmulator.Core.Video
             _scanline = ly;
             _vram = vram;
             _oam = oam;
+            _if = @if;
         }
 
         // TODO: Make this more efficient. Currently one clock per call. 
@@ -57,6 +63,8 @@ namespace GameboyEmulator.Core.Video
             if (!_lcdc.LcdEnable.Value) return 0;
 
             _counter++;
+
+            _globalCounter++;
 
             switch (_stat.Mode)
             {
@@ -87,9 +95,11 @@ namespace GameboyEmulator.Core.Video
                     }
                     break;
                 case LcdMode.VerticalBlank:
+                    // TODO this is wrong, maybe
                     if (_counter >= 456)
                     {
                         _scanline.Value++;
+                        _counter = 0; // TODO re-check
                     }
                     if (_scanline.Value == 154)
                     {
@@ -111,11 +121,17 @@ namespace GameboyEmulator.Core.Video
             {
                 RenderScanline(_scanline.Value);
                 // TODO: HBlank interrupt
+                _if.SetBit(1, true);
             }
             else if (newMode == LcdMode.VerticalBlank)
             {
+                //Console.WriteLine($"Vblank after {_globalCounter - _lastVblank} cycles.");
+                _lastVblank = _globalCounter;
+                
+
                 OnCompletedFrame();
                 // TODO: VBlank interrupt
+                _if.SetBit(0, true);
             }
         }
 

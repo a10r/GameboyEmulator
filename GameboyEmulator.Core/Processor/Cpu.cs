@@ -821,7 +821,8 @@ namespace GameboyEmulator.Core.Processor
                         return 24;
                     }
                 #endregion
-
+               
+                // TODO timing, manual says 16 cycles?
                 #region RET
                 case 0xC9:
                     {
@@ -830,11 +831,12 @@ namespace GameboyEmulator.Core.Processor
                     }
                 #endregion
 
-                // TODO
+                // TODO timing, manual says 16 cycles?
                 #region RETI
                 case 0xD9:
                     {
-                        throw new NotImplementedException();
+                        Instructions.Return(m.Registers.PC, m.Stack);
+                        m.InterruptMasterEnable = true; // "returned to its pre-interrupt status"?
                         return 8;
                     }
                 #endregion
@@ -852,6 +854,7 @@ namespace GameboyEmulator.Core.Processor
                     }
                 #endregion
 
+                // TODO timing, manual says 16 cycles?
                 #region RST t
                 case 0xC7:
                 case 0xCF:
@@ -862,8 +865,9 @@ namespace GameboyEmulator.Core.Processor
                 case 0xF7:
                 case 0xFF:
                     {
-                        throw new NotImplementedException();
-                        return 32;
+                        var resetOffset = (byte)((opcode & 0b0011_1000) >> 3);
+                        Instructions.Restart(m.Registers.PC, resetOffset, m.Stack);
+                        return 16;
                     }
                 #endregion
 
