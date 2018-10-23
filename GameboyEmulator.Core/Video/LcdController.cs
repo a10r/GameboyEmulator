@@ -38,7 +38,8 @@ namespace GameboyEmulator.Core.Video
             IMemoryBlock oam)
         {
             Debug.Assert(vram.Size == 8192);
-            Debug.Assert(oam.Size == 120);
+            Debug.Assert(oam.Size == 160);
+
             _framebuffer = new Framebuffer(160, 144);
             _lcdc = lcdc;
             _stat = stat;

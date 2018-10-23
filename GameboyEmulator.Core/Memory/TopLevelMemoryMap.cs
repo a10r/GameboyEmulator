@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 
 namespace GameboyEmulator.Core.Memory
 {
@@ -47,7 +48,8 @@ namespace GameboyEmulator.Core.Memory
                 }
                 if (address < 0xFF00)
                 {
-                    throw new InvalidOperationException("Illegal write.");
+                    // Unmapped memory region. Hardware always returns 0xFF.
+                    return 0xFF;
                 }
                 if (address <= 0xFFFF)
                 {
@@ -86,7 +88,7 @@ namespace GameboyEmulator.Core.Memory
                 }
                 else if (address < 0xFF00)
                 {
-                    throw new InvalidOperationException("Illegal write.");
+                    // Unmapped memory region. Nothing happens.
                 }
                 else if (address <= 0xFFFF)
                 {
@@ -106,6 +108,9 @@ namespace GameboyEmulator.Core.Memory
             IMemoryBlock oam,
             IMemoryBlock ioPorts)
         {
+            Debug.Assert(vram.Size == 8192);
+            Debug.Assert(oam.Size == 160);
+
             _cartridgeRom = cartridgeRom;
             _cartridgeRam = cartridgeRam;
             _vram = vram;

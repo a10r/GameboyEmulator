@@ -4,37 +4,42 @@
     {
         private readonly IMemoryBlock _top;
         private readonly IMemoryBlock _bottom;
+        private readonly IRegister<bool> _disableTop;
 
         public byte this[int address]
         {
             get
             {
-                if (address < _top.Size)
+                if (address >= _top.Size || _disableTop.Value == true)
+                {
+                    return _bottom[address];
+                }
+                else
                 {
                     return _top[address];
                 }
-                return _bottom[address];
             }
 
             set
             {
-                if (address < _top.Size)
+                if (address >= _top.Size || _disableTop.Value == true)
                 {
-                    _top[address] = value;
+                    _bottom[address] = value;
                 }
                 else
                 {
-                    _bottom[address] = value;
+                    _top[address] = value;
                 }
             }
         }
 
         public int Size => _bottom.Size;
 
-        public ShadowedMemoryBlock(IMemoryBlock top, IMemoryBlock bottom)
+        public ShadowedMemoryBlock(IMemoryBlock top, IMemoryBlock bottom, IRegister<bool> disableTop)
         {
             _top = top;
             _bottom = bottom;
+            _disableTop = disableTop;
         }
 
 

@@ -32,6 +32,8 @@ namespace GameboyEmulator.Core.Processor
         {
             switch (id)
             {
+                case 0:
+                    return regs.BC; // TODO check
                 case 1:
                     return regs.DE;
                 case 2:

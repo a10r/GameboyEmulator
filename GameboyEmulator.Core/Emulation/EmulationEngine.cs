@@ -4,6 +4,7 @@ using System.Threading;
 using GameboyEmulator.Core.Debugger;
 using GameboyEmulator.Core.Memory;
 using GameboyEmulator.Core.Processor;
+using GameboyEmulator.Core.Utils;
 using GameboyEmulator.Core.Video;
 
 namespace GameboyEmulator.Core.Emulation
@@ -19,7 +20,7 @@ namespace GameboyEmulator.Core.Emulation
             _logger = Console.Out;
 
             var vram = new MemoryBlock(8192);
-            var oam = new MemoryBlock(120);
+            var oam = new MemoryBlock(160);
             var io = new AddressableRegisterField(256);
 
             // TODO: replace this with the real registers
@@ -32,7 +33,13 @@ namespace GameboyEmulator.Core.Emulation
             var stat = new LcdStatusRegister();
             var scy = new Register<byte>();
             var scx = new Register<byte>();
-            var ly = new LoggingRegister<byte>(new Register<byte>(), "ly", _logger);
+            var ly = new Register<byte>();
+            //var ly = new LoggingRegister<byte>(new Register<byte>(), "ly", _logger);
+
+            var @if = new Register<byte>();
+            var ie = new Register<byte>();
+
+            var bootromEnable = new Register<byte>();
 
             io.Add(0x40, lcdc);
             io.Add(0x41, stat);
@@ -40,10 +47,17 @@ namespace GameboyEmulator.Core.Emulation
             io.Add(0x43, scx);
             io.Add(0x44, ly);
 
+            io.Add(0x50, bootromEnable);
+
+            io.Add(0x0F, @if);
+            io.Add(0xFF, ie);
+
             var memoryMap = new TopLevelMemoryMap(
                 new ShadowedMemoryBlock(
                     MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/DMG_ROM.bin"),
-                    MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/Tetris.gb")
+                    MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/Tetris.gb"),
+                    //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/gb-test-roms/cpu_instrs/cpu_instrs.gb"),
+                    new BoolPointer(bootromEnable, 0)
                     ),
                 new MemorySink(),
                 vram,
