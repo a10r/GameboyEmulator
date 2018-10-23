@@ -1,13 +1,14 @@
-﻿using System;
+﻿using GameboyEmulator.Core.Utils;
+using System;
 
 namespace GameboyEmulator.Core.Memory
 {
     public class FlagRegister : IFlags, IRegister<byte>
     {
-        public bool Zero { get; set; }
-        public bool Subtract { get; set; }
-        public bool HalfCarry { get; set; }
-        public bool Carry { get; set; }
+        public bool Zero { get; set; } // Z
+        public bool Subtract { get; set; } // N
+        public bool HalfCarry { get; set; } // H
+        public bool Carry { get; set; } // CY
 
         public byte Value
         {
@@ -23,7 +24,11 @@ namespace GameboyEmulator.Core.Memory
 
             set
             {
-                throw new InvalidOperationException("Cannot set raw value of the flag register.");
+                // It's possible to do raw writes to the flag register, e.g. through instruction 0xF1.
+                Zero = value.GetBit(7);
+                Subtract = value.GetBit(6);
+                HalfCarry = value.GetBit(5);
+                Carry = value.GetBit(4);
             }
         }
 

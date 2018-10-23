@@ -84,7 +84,7 @@ namespace GameboyEmulator.UI
 
         public void Refresh()
         {
-            DisassembedProgramText = DisassembleAndFormat(10);
+            DisassembedProgramText = DisassembleAndFormat(50);
             EmulationIsRunning = _emulationControl.Running;
             OnPropertyChanged("State");
         }
