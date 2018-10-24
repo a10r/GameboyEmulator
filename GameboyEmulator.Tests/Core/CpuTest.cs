@@ -33,9 +33,7 @@ namespace GameboyEmulator.Tests.Core
         {
             for (int i = 0; i < instructionCount; i++)
             {
-                var addr = _machine.Registers.PC.Value;
-                var instr = Disassembler.DisassembleInstruction(InstructionLookahead.Passive(_machine)).Text;
-                TestContext.Out.WriteLine($"#{i} 0x{addr:X4}: {instr}");
+                TestContext.Out.WriteLine($"#{i} {DebugUtils.Trace(_machine)}");
 
                 Cpu.ExecuteNextInstruction(_machine);
             }

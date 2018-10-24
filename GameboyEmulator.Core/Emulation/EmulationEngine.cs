@@ -32,24 +32,30 @@ namespace GameboyEmulator.Core.Emulation
             }
 
             var lcdc = new LcdControlRegister();
+            var lcdcLogger = new LoggingRegister<byte>(lcdc, "lcdc", _logger, logReads: false);
             var stat = new LcdStatusRegister();
+            var statLogger = new LoggingRegister<byte>(stat, "stat", _logger, logReads: false);
             var scy = new Register<byte>();
             var scx = new Register<byte>();
             var ly = new Register<byte>();
-            //var ly = new LoggingRegister<byte>(new Register<byte>(), "ly", _logger);
+            
+            var lyLogger = new LoggingRegister<byte>(ly, "ly", _logger, logReads: false);
 
             var @if = new Register<byte>();
             var ie = new Register<byte>();
 
             var bootromEnable = new Register<byte>();
 
-            io.Add(0x01, new LambdaRegister<byte>(b => Console.Write(Convert.ToChar(b)))); // sb serial transfer
+            var serialLog = new StreamWriter("C:/Users/Andreas/Dropbox/DMG/serial_log.txt", true);
+            var lastSerialByte = 0;
+            io.Add(0x01, new LambdaRegister<byte>(b => lastSerialByte = b)); // SB serial transfer
+            io.Add(0x02, new LambdaRegister<byte>(b => { if (b == 0x81) serialLog.Write(Convert.ToChar(lastSerialByte)); serialLog.Flush(); })); // SC serial clock
 
-            io.Add(0x40, lcdc);
-            io.Add(0x41, stat);
+            io.Add(0x40, lcdcLogger);
+            io.Add(0x41, statLogger);
             io.Add(0x42, scy);
             io.Add(0x43, scx);
-            io.Add(0x44, ly);
+            io.Add(0x44, lyLogger);
 
             io.Add(0x50, bootromEnable);
 
@@ -62,7 +68,8 @@ namespace GameboyEmulator.Core.Emulation
                     //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/Tetris.gb"),
                     //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/DrMario.gb"),
                     //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/gb-test-roms/cpu_instrs/cpu_instrs.gb"),
-                    MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/gb-test-roms/cpu_instrs/individual/09-op r,r.gb"),
+                    //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/gb-test-roms/cpu_instrs/individual/09-op r,r.gb"),
+                    MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/gb-test-roms/cpu_instrs/individual/11-op a,(hl).gb"),
                     new BoolPointer(bootromEnable, 0)
                     ),
                 new MemoryBlock(8192), // cartridge ram TODO cartridge types!
@@ -149,7 +156,7 @@ namespace GameboyEmulator.Core.Emulation
 
                 State.InterruptMasterEnable = false;
                 
-                _logger.WriteLine($"Servicing interrupt ... {Convert.ToString(State.Memory[0xFF0F], 2).PadLeft(8, '0')} {Convert.ToString(State.Memory[0xFFFF], 2).PadLeft(8, '0')} {Convert.ToString(firedInterrupts, 2).PadLeft(8, '0')} {ElapsedCycles - _c}");
+                _logger.WriteLine($"Servicing interrupt ... {State.Memory[0xFF0F].ToBinaryString()} {State.Memory[0xFFFF].ToBinaryString()} {firedInterrupts.ToBinaryString()} {ElapsedCycles - _c}");
                 _c = ElapsedCycles;
 
                 //Running = false;

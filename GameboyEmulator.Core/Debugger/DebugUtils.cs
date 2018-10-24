@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using GameboyEmulator.Core.Emulation;
 using GameboyEmulator.Core.Memory;
@@ -47,6 +48,19 @@ namespace GameboyEmulator.Core.Debugger
 
             var hl = state.Memory[state.Registers.HL.Value];
             return $"0x{pc:X4}: {bytes,-10} {disassembledInstr.Text,-15} {state.Registers.ToString()}; (HL)={hl:X2}";
+        }
+
+        public static string ToBinaryString<T>(this T data)
+        {
+            switch (data)
+            {
+                case byte b:
+                    return $"0b{Convert.ToString(b, 2).PadLeft(8, '0').Insert(4, "_")}";
+                case ushort s:
+                    return $"0b{Convert.ToString(s, 2).PadLeft(16, '0').Insert(4, "_").Insert(8, "_").Insert(12, "_")}";
+                default:
+                    return "0b????_????";
+            }
         }
     }
 }

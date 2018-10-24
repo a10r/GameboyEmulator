@@ -20,6 +20,7 @@ namespace GameboyEmulator.Core.Video
 
         private readonly LcdControlRegister _lcdc;
         private readonly LcdStatusRegister _stat;
+        private LcdMode _currentMode = LcdMode.OamSearch; // TODO incorporate this into stat register code
 
         private readonly IRegister<byte> _scx;
         private readonly IRegister<byte> _scy;
@@ -66,7 +67,7 @@ namespace GameboyEmulator.Core.Video
 
             _globalCounter++;
 
-            switch (_stat.Mode)
+            switch (_currentMode)
             {
                 case LcdMode.OamSearch:
                     if (_counter >= 80)
@@ -109,12 +110,13 @@ namespace GameboyEmulator.Core.Video
                     break;
             }
 
+            _stat.Mode = _currentMode; // TODO
             return 1;
         }
 
         private void ChangeMode(LcdMode newMode)
         {
-            _stat.Mode = newMode;
+            _currentMode = newMode;
             _counter = 0;
 
             if (newMode == LcdMode.HorizontalBlank)
@@ -135,39 +137,11 @@ namespace GameboyEmulator.Core.Video
             }
         }
 
-        private int _frameCount = 0;
-
-        private void __DummyRenderScanline(int y)
-        {
-            if (y == 0) _frameCount++;
-            
-            var grayscale = (_frameCount + y) % 255;
-            var color = Color.FromArgb(grayscale, grayscale, grayscale);
-            
-            // Slow as fk
-            //_framebuffer.SetPixel(j, i, color);
-
-            //var data = _framebuffer.LockBits(new Rectangle(0, 0, _framebuffer.Width, _framebuffer.Height),
-            //    ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
-            //var stride = data.Stride;
-            //unsafe
-            //{
-            //    var ptr = (byte*)data.Scan0;
-            //    for (var x = 0; x < 160; x++)
-            //    {
-            //        var pixelOffset = x * 3 + y * stride;
-            //        ptr[pixelOffset] = color.R;
-            //        ptr[pixelOffset + 1] = color.G;
-            //        ptr[pixelOffset + 2] = color.B;
-            //    }
-            //}
-
-            //_framebuffer.UnlockBits(data);
-        }
-        
         private void RenderScanline(int i)
         {
-            //__DummyRenderScanline(i);
+            if (i >= 144) Console.WriteLine($"Scanline {i}");
+
+            //Debug.Assert(i <= 143);
 
             var tilemapOffset = _lcdc.BackgroundTilemap.Value ? 0x1C00 : 0x1800;
             var tilesetOffset = _lcdc.BackgroundTileset.Value ? 0x0000 : 0x1000;

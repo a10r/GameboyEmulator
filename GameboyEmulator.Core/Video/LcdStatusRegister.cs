@@ -9,7 +9,7 @@ namespace GameboyEmulator.Core.Video
         {
             get
             {
-                return (LcdMode) ((Value.GetBit(1) ? 2 : 0) + (Value.GetBit(0) ? 1 : 0));
+                return (LcdMode) ((Value.GetBit(1) ? 2 : 0) + (Value.GetBit(0) ? 1 : 0)); // TODO improve this
             }
             set
             {

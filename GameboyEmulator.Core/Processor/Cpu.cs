@@ -796,6 +796,7 @@ namespace GameboyEmulator.Core.Processor
                 #region JP (HL)
                 case 0xE9:
                     {
+                        // This doesn't use the memory location pointed to by HL, but the value of HL itself!
                         Instructions.Load(m.Registers.PC, m.Registers.HL.Value);
                         return 4;
                     }
@@ -1119,8 +1120,7 @@ namespace GameboyEmulator.Core.Processor
                         return 16;
                     }
                 #endregion
-
-                // TODO fix these
+                    
                 #region SWAP reg
                 case 0x37:
                 case 0x30:
@@ -1130,9 +1130,8 @@ namespace GameboyEmulator.Core.Processor
                 case 0x34:
                 case 0x35:
                     {
-                        throw new NotImplementedException();
                         var reg = m.Registers.GetRegisterById(opcode & 0x7);
-                        Instructions.ShiftLeft(reg, m.Registers.Flags);
+                        Instructions.SwapNibbles(reg, m.Registers.Flags);
                         return 8;
                     }
                 #endregion
@@ -1140,7 +1139,6 @@ namespace GameboyEmulator.Core.Processor
                 #region SWAP (HL)
                 case 0x36:
                     {
-                        throw new NotImplementedException();
                         var mem = new MemoryLocation(m.Memory, m.Registers.HL.Value);
                         Instructions.ShiftLeft(mem, m.Registers.Flags);
                         return 16;
