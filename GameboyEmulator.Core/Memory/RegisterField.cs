@@ -39,7 +39,6 @@
         }
 
         public override string ToString() 
-            => $"A = 0x{A.Value:X2}; F = 0x{F.Value:X2}; B = 0x{B.Value:X2}; C = 0x{C.Value:X2}; "
-                + $"D = 0x{D.Value:X2}; E = 0x{E.Value:X2}; H = 0x{H.Value:X2}; L = 0x{L.Value:X2}";
+            => $"A={A.Value:X2}; F={F.Value:X2}; B={B.Value:X2}; C={C.Value:X2}; D={D.Value:X2}; E={E.Value:X2}; H={H.Value:X2}; L={L.Value:X2}; PC={PC.Value:X4}; SP={SP.Value:X4}";
     }
 }

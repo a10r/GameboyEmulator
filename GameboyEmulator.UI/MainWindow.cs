@@ -21,7 +21,10 @@ namespace GameboyEmulator.UI
                 {
                     await Task.Delay(1000);
                     var elapsed = emulator.ElapsedCycles - last;
-                    Console.WriteLine($"{(float)elapsed / 1000000} MHz");
+                    if (emulator.Running)
+                    {
+                        Console.WriteLine($"{(float)elapsed / 1000000} MHz");
+                    }
                     last = emulator.ElapsedCycles;
                 }
             });

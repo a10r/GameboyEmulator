@@ -21,6 +21,7 @@
 
     public enum SpecialRegisterName
     {
+        BC = 0,
         DE = 1,
         HL = 2,
         SP = 3

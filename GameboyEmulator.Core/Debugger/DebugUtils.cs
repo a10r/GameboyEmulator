@@ -1,5 +1,8 @@
 ﻿using System.IO;
+using System.Linq;
+using GameboyEmulator.Core.Emulation;
 using GameboyEmulator.Core.Memory;
+using GameboyEmulator.Core.Processor;
 
 namespace GameboyEmulator.Core.Debugger
 {
@@ -34,6 +37,16 @@ namespace GameboyEmulator.Core.Debugger
         public static char ToDisplayableChar(this byte b)
         {
             return b > 0xA0 || (b > 0x1F && b < 0x80) ? (char)b : '.';
+        }
+
+        public static string Trace(IMachineState state)
+        {
+            var pc = state.Registers.PC.Value;
+            var disassembledInstr = Disassembler.DisassembleInstruction(InstructionLookahead.Passive(state));
+            var bytes = string.Join(" ", Enumerable.Range(0, disassembledInstr.Length).Select(i => state.Memory[pc + i].ToString("X2")));
+
+            var hl = state.Memory[state.Registers.HL.Value];
+            return $"0x{pc:X4}: {bytes,-10} {disassembledInstr.Text,-15} {state.Registers.ToString()}; (HL)={hl:X2}";
         }
     }
 }

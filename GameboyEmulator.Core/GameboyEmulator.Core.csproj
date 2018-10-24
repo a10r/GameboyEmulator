@@ -52,6 +52,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Cartridge\Cartridge.cs" />
+    <Compile Include="Debugger\LambdaRegister.cs" />
     <Compile Include="Debugger\LoggingRegister.cs" />
     <Compile Include="Emulation\MachineState.cs" />
     <Compile Include="Memory\AddressableRegisterField.cs" />

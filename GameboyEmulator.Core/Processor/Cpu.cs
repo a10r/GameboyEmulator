@@ -320,6 +320,7 @@ namespace GameboyEmulator.Core.Processor
                     }
                 #endregion
 
+                // TODO flags not set?
                 #region LDHL SP, e
                 case 0xF8:
                     {
@@ -370,7 +371,7 @@ namespace GameboyEmulator.Core.Processor
                 case 0xC6:
                     {
                         var imm = NextInstructionByte(m);
-                        Instructions.Add((IRegister<byte>)m.Registers.A, imm, (IFlags)m.Registers.Flags);
+                        Instructions.Add(m.Registers.A, imm, m.Registers.Flags);
                         return 8;
                     }
                 #endregion
@@ -672,6 +673,7 @@ namespace GameboyEmulator.Core.Processor
                 case 0xE8:
                     {
                         // ...
+                        throw new NotImplementedException();
                         return 16;
                     }
                 #endregion
@@ -700,6 +702,7 @@ namespace GameboyEmulator.Core.Processor
                     }
                 #endregion
 
+                // TODO re-check if these pairs are flipped, looks weird
                 #region RLCA
                 case 0x07:
                     {
@@ -737,6 +740,7 @@ namespace GameboyEmulator.Core.Processor
                         return ExecuteCB(m);
                     }
 
+                // TODO timing correct?
                 #region JP imm16
                 case 0xC3:
                     {
@@ -763,6 +767,8 @@ namespace GameboyEmulator.Core.Processor
                     }
                 #endregion
                     
+                // TODO re-check jump offset (should be correct though)
+                // TODO timing
                 #region JR e
                 case 0x18:
                     {
@@ -790,8 +796,7 @@ namespace GameboyEmulator.Core.Processor
                 #region JP (HL)
                 case 0xE9:
                     {
-                        var mem = new MemoryLocation(m.Memory, m.Registers.HL.Value);
-                        Instructions.Load(m.Registers.PC, mem.Value);
+                        Instructions.Load(m.Registers.PC, m.Registers.HL.Value);
                         return 4;
                     }
                 #endregion
@@ -865,8 +870,8 @@ namespace GameboyEmulator.Core.Processor
                 case 0xF7:
                 case 0xFF:
                     {
-                        var resetOffset = (byte)((opcode & 0b0011_1000) >> 3);
-                        Instructions.Restart(m.Registers.PC, resetOffset, m.Stack);
+                        var restartOffset = (byte)((opcode & 0b0011_1000) >> 3);
+                        Instructions.Restart(m.Registers.PC, restartOffset, m.Stack);
                         return 16;
                     }
                 #endregion
@@ -1115,6 +1120,7 @@ namespace GameboyEmulator.Core.Processor
                     }
                 #endregion
 
+                // TODO fix these
                 #region SWAP reg
                 case 0x37:
                 case 0x30:
@@ -1124,6 +1130,7 @@ namespace GameboyEmulator.Core.Processor
                 case 0x34:
                 case 0x35:
                     {
+                        throw new NotImplementedException();
                         var reg = m.Registers.GetRegisterById(opcode & 0x7);
                         Instructions.ShiftLeft(reg, m.Registers.Flags);
                         return 8;
@@ -1133,6 +1140,7 @@ namespace GameboyEmulator.Core.Processor
                 #region SWAP (HL)
                 case 0x36:
                     {
+                        throw new NotImplementedException();
                         var mem = new MemoryLocation(m.Memory, m.Registers.HL.Value);
                         Instructions.ShiftLeft(mem, m.Registers.Flags);
                         return 16;

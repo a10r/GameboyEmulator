@@ -60,7 +60,7 @@ namespace GameboyEmulator.Core.Video
         // TODO: Timing is not accurate. (Depends on sprite count etc)
         public int Tick()
         {
-            if (!_lcdc.LcdEnable.Value) return 0;
+            if (!_lcdc.LcdEnable.Value) return 1;
 
             _counter++;
 
@@ -95,7 +95,7 @@ namespace GameboyEmulator.Core.Video
                     }
                     break;
                 case LcdMode.VerticalBlank:
-                    // TODO this is wrong, maybe
+                    // TODO this is wrong, maybe?
                     if (_counter >= 456)
                     {
                         _scanline.Value++;

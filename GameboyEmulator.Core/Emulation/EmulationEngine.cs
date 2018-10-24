@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using GameboyEmulator.Core.Debugger;
 using GameboyEmulator.Core.Memory;
@@ -41,6 +43,8 @@ namespace GameboyEmulator.Core.Emulation
 
             var bootromEnable = new Register<byte>();
 
+            io.Add(0x01, new LambdaRegister<byte>(b => Console.Write(Convert.ToChar(b)))); // sb serial transfer
+
             io.Add(0x40, lcdc);
             io.Add(0x41, stat);
             io.Add(0x42, scy);
@@ -55,8 +59,10 @@ namespace GameboyEmulator.Core.Emulation
             var memoryMap = new TopLevelMemoryMap(
                 new ShadowedMemoryBlock(
                     MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/DMG_ROM.bin"),
-                    MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/Tetris.gb"),
+                    //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/Tetris.gb"),
+                    //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/DrMario.gb"),
                     //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/gb-test-roms/cpu_instrs/cpu_instrs.gb"),
+                    MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/gb-test-roms/cpu_instrs/individual/09-op r,r.gb"),
                     new BoolPointer(bootromEnable, 0)
                     ),
                 new MemoryBlock(8192), // cartridge ram TODO cartridge types!
@@ -70,7 +76,16 @@ namespace GameboyEmulator.Core.Emulation
                 new LoggingMemoryBlock(State.Memory, _logger));
             _lcdController = new LcdController(lcdc, stat, scx, scy, ly,
                 vram, oam, @if);
+
+            //SkipBootrom();
+
+            _trace = new StreamWriter($"C:/Users/Andreas/Desktop/trace_{DateTime.Now.ToFileTime()}.txt");
         }
+
+        // Debug
+        public TextWriter _trace;
+        private IDictionary<ushort, Instruction> _logUnique = new Dictionary<ushort, Instruction>();
+        private IDictionary<ushort, int> _logHits = new Dictionary<ushort, int>();
 
         public IMachineState State { get; }
 
@@ -82,8 +97,34 @@ namespace GameboyEmulator.Core.Emulation
 
         private long _c;
 
+
+        private void DumpLog()
+        {
+            foreach (var item in _logUnique)
+            {
+                var bytes = string.Join(" ", Enumerable.Range(0, item.Value.Length).Select(i => State.Memory[item.Key + i].ToString("X2")));
+                _logger.WriteLine($"0x{item.Key:X4}: {bytes,-10} {item.Value.Text} ({_logHits[item.Key]}x)");
+            }
+        }
+
         public void Step()
         {
+            //if (State.Memory[0xFF50].GetBit(0)) // Bootrom disabled
+            //{
+            //    //var nextInstr = Disassembler.DisassembleInstruction(InstructionLookahead.Passive(State));
+            //    //_log[State.Registers.PC.Value] = nextInstr;
+            //    //if (!_logHits.ContainsKey(State.Registers.PC.Value)) _logHits[State.Registers.PC.Value] = 0;
+            //    //_logHits[State.Registers.PC.Value]++;
+
+            //    _trace.WriteLine(DebugUtils.Trace(State));
+
+            //    if (State.Registers.PC.Value == 0x00F0)
+            //    {
+            //        _trace.Flush();
+            //        Environment.Exit(0);
+            //    }
+            //}
+
             var cycles = Cpu.ExecuteNextInstruction(State);
             ElapsedCycles += cycles;
 
@@ -174,10 +215,19 @@ namespace GameboyEmulator.Core.Emulation
 
             while (!Running)
             {
-                Thread.Sleep(1000);
+                Thread.Sleep(10000);
             }
 
             goto runLoop;
+        }
+
+        public void SkipBootrom()
+        {
+            // TODO
+            State.Memory[0xFF40] = 0x91; // turn on lcd
+            State.Memory[0xFF47] = 0xFC; // bg palette
+            State.Memory[0xFF50] = 1; // turn off bootrom
+            State.Registers.PC.Value = 0x100;
         }
     }
 }

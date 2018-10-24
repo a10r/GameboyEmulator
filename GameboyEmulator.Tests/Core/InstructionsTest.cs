@@ -1,5 +1,4 @@
-﻿using GameboyEmulator.Core;
-using GameboyEmulator.Core.Memory;
+﻿using GameboyEmulator.Core.Memory;
 using GameboyEmulator.Core.Processor;
 using NUnit.Framework;
 
