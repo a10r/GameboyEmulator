@@ -1,5 +1,6 @@
 using GameboyEmulator.Core.Debugger;
 using GameboyEmulator.Core.Emulation;
+using GameboyEmulator.Core.Memory;
 using GameboyEmulator.Core.Processor;
 using GameboyEmulator.Core.Utils;
 using GameboyEmulator.Tests.Util;
@@ -70,10 +71,10 @@ namespace GameboyEmulator.Tests.Core
             Assert.AreEqual(_machine.Memory[INITIAL_SP - 2], returnAddress.GetLow());
         }
 
-        [TestCase(0xC4, true, false)] // NZ
-        [TestCase(0xCC, false, false)] // Z
-        [TestCase(0xD4, false, true)] // NC
-        [TestCase(0xDC, false, false)] // C
+        [TestCase(0xC4, true,    default)] // NZ
+        [TestCase(0xCC, false,   default)] // Z
+        [TestCase(0xD4, default, true)] // NC
+        [TestCase(0xDC, default, false)] // C
         public void ConditionalCall_Fail(byte opcode, bool zeroFlag, bool carryFlag)
         {
             _machine.Registers.Flags.Zero = zeroFlag;
@@ -105,6 +106,24 @@ namespace GameboyEmulator.Tests.Core
             LoadProgram(INITIAL_PC, 0xe9); // JP (HL)
             Run(1);
             Assert.AreEqual(_machine.Registers.PC.Value, 0x1000);
+        }
+
+        [Test]
+        public void AddImmToSP()
+        {
+            _machine.Registers.SP.Value = 0xFFF8;
+            LoadProgram(INITIAL_PC, 0xE8, 0x02); // ADD SP, 0x02
+            Run(1);
+            Assert.AreEqual(_machine.Registers.SP.Value, 0xFFFA);
+            AssertFlags(new FlagRegister(false, false, false, false), _machine.Registers.Flags);
+        }
+        
+        private void AssertFlags(IFlags expected, IFlags actual)
+        {
+            Assert.AreEqual(expected.Zero, actual.Zero);
+            Assert.AreEqual(expected.Subtract, actual.Subtract);
+            Assert.AreEqual(expected.HalfCarry, actual.HalfCarry);
+            Assert.AreEqual(expected.Carry, actual.Carry);
         }
     }
 }

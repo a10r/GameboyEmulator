@@ -319,13 +319,12 @@ namespace GameboyEmulator.Core.Processor
                         return 12;
                     }
                 #endregion
-
-                // TODO flags not set?
+                    
                 #region LDHL SP, e
                 case 0xF8:
                     {
-                        var e = NextInstructionByte(m);
-                        Instructions.Load(m.Registers.HL, (ushort)(m.Registers.SP.Value + e - 128));
+                        var e = (sbyte)NextInstructionByte(m);
+                        Instructions.LoadWithSignedOffset(m.Registers.HL, m.Registers.SP, e, m.Registers.Flags);
                         return 12;
                     }
                 #endregion
@@ -662,18 +661,18 @@ namespace GameboyEmulator.Core.Processor
                 case 0x29:
                 case 0x39:
                     {
-                        var regSource = m.Registers.GetGeneralRegisterPairById((opcode & 0x30) >> 4);
+                        var regSource = m.Registers.GetSpecialRegisterPairById((opcode & 0x30) >> 4);
                         Instructions.Add(m.Registers.HL, regSource.Value, m.Registers.Flags);
                         return 8;
                     }
                 #endregion
-
-                // TODO
+                    
                 #region ADD SP, e
                 case 0xE8:
                     {
-                        // ...
-                        throw new NotImplementedException();
+                        var reg = m.Registers.SP;
+                        var e = (sbyte)NextInstructionByte(m);
+                        Instructions.LoadWithSignedOffset(reg, reg, e, m.Registers.Flags);
                         return 16;
                     }
                 #endregion
@@ -684,7 +683,7 @@ namespace GameboyEmulator.Core.Processor
                 case 0x23:
                 case 0x33:
                     {
-                        var regSource = m.Registers.GetGeneralRegisterPairById((opcode & 0x30) >> 4);
+                        var regSource = m.Registers.GetSpecialRegisterPairById((opcode & 0x30) >> 4);
                         Instructions.Increment(regSource);
                         return 8;
                     }
@@ -696,7 +695,7 @@ namespace GameboyEmulator.Core.Processor
                 case 0x2B:
                 case 0x3B:
                     {
-                        var regSource = m.Registers.GetGeneralRegisterPairById((opcode & 0x30) >> 4);
+                        var regSource = m.Registers.GetSpecialRegisterPairById((opcode & 0x30) >> 4);
                         Instructions.Decrement(regSource);
                         return 8;
                     }
@@ -1140,7 +1139,7 @@ namespace GameboyEmulator.Core.Processor
                 case 0x36:
                     {
                         var mem = new MemoryLocation(m.Memory, m.Registers.HL.Value);
-                        Instructions.ShiftLeft(mem, m.Registers.Flags);
+                        Instructions.SwapNibbles(mem, m.Registers.Flags);
                         return 16;
                     }
                 #endregion

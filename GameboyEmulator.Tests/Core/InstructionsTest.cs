@@ -9,6 +9,7 @@ namespace GameboyEmulator.Tests.Core
         [TestCase(0x00, 0x00, 0x00, false, false)]
         [TestCase(0x80, 0x80, 0x00, false, true)]
         [TestCase(0x3A, 0xC6, 0x00, true, true)]
+        [TestCase(0b0000_0000, 0b1111_1111, 0b1111_1111, false, false)]
         public void Add(byte a, byte b, byte expected,
             bool expectedH, bool expectedC)
         {
@@ -16,6 +17,20 @@ namespace GameboyEmulator.Tests.Core
             var reg = new Register<byte> { Value = a };
             var flags = new FlagRegister();
             Instructions.Add(reg, b, flags);
+            Assert.AreEqual(expected, reg.Value);
+            AssertFlags(expectedFlags, flags);
+        }
+
+        [TestCase(0b0000_0000, 0b1111_1110, 0b1111_1111, false, false)]
+        [TestCase(0b0000_1000, 0b0000_1000, 0b0001_0001, true, false)]
+        [TestCase(0b0000_0000, 0b1111_1111, 0b0000_0000, true, true)]
+        public void AddPlusCarry(byte a, byte b, byte expected,
+            bool expectedH, bool expectedC)
+        {
+            var expectedFlags = new FlagRegister(expected == 0, false, expectedH, expectedC);
+            var reg = new Register<byte> { Value = a };
+            var flags = new FlagRegister() { Carry = true };
+            Instructions.AddPlusCarry(reg, b, flags);
             Assert.AreEqual(expected, reg.Value);
             AssertFlags(expectedFlags, flags);
         }
@@ -31,6 +46,21 @@ namespace GameboyEmulator.Tests.Core
             var reg = new Register<byte> { Value = a };
             var flags = new FlagRegister();
             Instructions.Subtract(reg, b, flags);
+            Assert.AreEqual(expected, reg.Value);
+            AssertFlags(expectedFlags, flags);
+        }
+
+        [TestCase(0b0011_1011, 0b0010_1010, 0b0001_0000, false, false)]
+        [TestCase(0b0011_1011, 0b0011_1010, 0x0000_0000, false, false)]
+        [TestCase(0b0011_1011, 0b0100_1111, 0b1110_1011, true, true)]
+        [TestCase(0b0000_0000, 0b0000_0000, 0b1111_1111, true, true)]
+        public void SubMinusCarry(byte a, byte b, byte expected,
+            bool expectedH, bool expectedC)
+        {
+            var expectedFlags = new FlagRegister(expected == 0, true, expectedH, expectedC);
+            var reg = new Register<byte> { Value = a };
+            var flags = new FlagRegister { Carry = true };
+            Instructions.SubtractMinusCarry(reg, b, flags);
             Assert.AreEqual(expected, reg.Value);
             AssertFlags(expectedFlags, flags);
         }
@@ -221,6 +251,16 @@ namespace GameboyEmulator.Tests.Core
         {
             var reg = new Register<byte> { Value = a };
             Instructions.SetBit(reg, index, value);
+            Assert.AreEqual(expected, reg.Value);
+        }
+
+        [TestCase(0x7D, 0x83, false, false, false)]
+        [TestCase(0x4B, 0x45, true, true, false)]
+        public void DecimalAdjust(byte a, byte expected, bool flagN, bool flagH, bool flagC)
+        {
+            var reg = new Register<byte> { Value = a };
+            var flags = new FlagRegister { Subtract = flagN, HalfCarry = flagH, Carry = flagC };
+            Instructions.DecimalAdjust(reg, flags);
             Assert.AreEqual(expected, reg.Value);
         }
 

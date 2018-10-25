@@ -10,6 +10,16 @@ namespace GameboyEmulator.Core.Processor
             target.Value = value;
         }
 
+        public static void LoadWithSignedOffset(IWriteonlyRegister<ushort> target, IReadonlyRegister<ushort> source, sbyte offset, IFlags flags)
+        {
+            var old = source.Value;
+            target.Value = (ushort)(source.Value + offset);
+            flags.Zero = false;
+            flags.Subtract = false;
+            flags.Carry = (old & 0xFF) + (offset & 0xFF) >= 0x100;
+            flags.HalfCarry = (old & 0xF) + (offset & 0xF) >= 0x10;
+        }
+
         public static void Push(IStack stack, ushort value)
         {
             stack.Push(value.GetHigh());
@@ -35,8 +45,13 @@ namespace GameboyEmulator.Core.Processor
 
         public static void AddPlusCarry(IRegister<byte> target, byte operand, IFlags flags)
         {
-            var carry = flags.Carry ? 1 : 0;
-            Add(target, (byte)(operand + carry), flags);
+            var carry = flags.Carry ? 1 : 0; 
+            var old = target.Value;
+            target.Value += (byte)(operand + carry);
+            flags.Zero = target.Value == 0;
+            flags.Subtract = false;
+            flags.Carry = ((old + operand + carry) & 0x100) != 0;
+            flags.HalfCarry = (((old & 0xF) + (operand & 0xF) + carry) & 0x10) != 0;
         }
 
         public static void Subtract(IRegister<byte> target, byte operand, IFlags flags)
@@ -51,8 +66,14 @@ namespace GameboyEmulator.Core.Processor
 
         public static void SubtractMinusCarry(IRegister<byte> target, byte operand, IFlags flags)
         {
-            var carry = flags.Carry ? 1 : 0;
-            Subtract(target, (byte)(operand + carry), flags);
+            var carry = (byte)(flags.Carry ? 1 : 0);
+            var old = target.Value;
+            target.Value -= operand;
+            target.Value -= carry;
+            flags.Zero = target.Value == 0;
+            flags.Subtract = true;
+            flags.Carry = old < (operand + carry);
+            flags.HalfCarry = (old & 0xF) < ((operand & 0xF) + carry);
         }
 
         public static void And(IRegister<byte> target, byte operand, IFlags flags)
@@ -96,9 +117,11 @@ namespace GameboyEmulator.Core.Processor
 
         public static void Decrement(IRegister<byte> target, IFlags flags)
         {
+            var old = target.Value;
             target.Value--;
-            flags.Zero = flags.HalfCarry = target.Value == 0;
+            flags.Zero = target.Value == 0;
             flags.Subtract = true;
+            flags.HalfCarry = (old & 0xF) < 1; // TODO check this flag
         }
 
         public static void Add(IRegister<ushort> target, ushort operand, IFlags flags)
@@ -109,9 +132,16 @@ namespace GameboyEmulator.Core.Processor
             flags.Carry = target.Value < old;
             flags.HalfCarry = (((old & 0xFFF) + (operand & 0xFFF)) & 0x1000) != 0;
         }
-        
-        // TODO: ADD SP, n (flags!)
 
+        public static void Add(IRegister<ushort> target, sbyte operand, IFlags flags)
+        {
+            var old = target.Value;
+            target.Value = (ushort)(target.Value + operand);
+            flags.Subtract = false;
+            flags.Carry = target.Value < old;
+            flags.HalfCarry = (((old & 0xFFF) + (operand & 0xFFF)) & 0x1000) != 0;
+        }
+        
         public static void Increment(IRegister<ushort> target)
         {
             target.Value++;
@@ -137,7 +167,6 @@ namespace GameboyEmulator.Core.Processor
                 if (flags.HalfCarry)
                 {
                     reg -= 0x06;
-                    reg &= 0xFF;
                 }
                 if (flags.Carry)
                 {
@@ -146,19 +175,19 @@ namespace GameboyEmulator.Core.Processor
             }
             else
             {
-                if (flags.HalfCarry || (reg & 0xF) > 9)
+                if (flags.HalfCarry || (reg & 0xF) > 0x9)
                 {
                     reg += 0x06;
                 }
-                if (flags.Carry || reg > 0x9F)
+                if (flags.Carry || (reg & 0xFF0) > 0x90)
                 {
                     reg += 0x60;
+                    flags.Carry = true;
                 }
             }
 
-            flags.Carry = (reg & 0x100) != 0x100;
-            flags.HalfCarry = false;
             target.Value = (byte)reg;
+            flags.HalfCarry = false;
             flags.Zero = target.Value == 0;
         }
 

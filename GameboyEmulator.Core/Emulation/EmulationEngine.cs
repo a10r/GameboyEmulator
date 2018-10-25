@@ -69,7 +69,7 @@ namespace GameboyEmulator.Core.Emulation
                     //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/DrMario.gb"),
                     //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/gb-test-roms/cpu_instrs/cpu_instrs.gb"),
                     //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/gb-test-roms/cpu_instrs/individual/09-op r,r.gb"),
-                    MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/gb-test-roms/cpu_instrs/individual/11-op a,(hl).gb"),
+                    MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/gb-test-roms/cpu_instrs/individual/03-op sp,hl.gb"),
                     new BoolPointer(bootromEnable, 0)
                     ),
                 new MemoryBlock(8192), // cartridge ram TODO cartridge types!
