@@ -16,7 +16,7 @@ namespace GameboyEmulator.Core.Video
 
     public class LcdController : IFrameSource
     {
-        private readonly Framebuffer _framebuffer;
+        private readonly Bitmap _framebuffer;
 
         private readonly LcdControlRegister _lcdc;
         private readonly LcdStatusRegister _stat;
@@ -46,7 +46,7 @@ namespace GameboyEmulator.Core.Video
             Debug.Assert(vram.Size == 8192);
             Debug.Assert(oam.Size == 160);
 
-            _framebuffer = new Framebuffer(160, 144);
+            _framebuffer = new Bitmap(160, 144);
             _lcdc = lcdc;
             _stat = stat;
             _scx = scx;
@@ -85,7 +85,7 @@ namespace GameboyEmulator.Core.Video
                     if (_counter >= 204)
                     {
                         _scanline.Value++;
-                        if (_scanline.Value == 144)
+                        if (_scanline.Value == 144) // TODO maybe 143???
                         {
                             ChangeMode(LcdMode.VerticalBlank);
                         }
@@ -165,9 +165,7 @@ namespace GameboyEmulator.Core.Video
                 shade = 4 - shade;
                 var color = Color.FromArgb(shade*60, shade*60, shade*60);
                 
-                _framebuffer.Data[x, i].R = color.R;
-                _framebuffer.Data[x, i].G = color.G;
-                _framebuffer.Data[x, i].B = color.B;
+                _framebuffer[x, i] = new Pixel(color.R, color.G, color.B);
 
                 tileX++;
 
@@ -195,6 +193,6 @@ namespace GameboyEmulator.Core.Video
 
     public class FrameEventArgs : EventArgs
     {
-        public Framebuffer Frame { get; set; }
+        public Bitmap Frame { get; set; }
     }
 }

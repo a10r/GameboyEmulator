@@ -10,6 +10,7 @@ namespace GameboyEmulator.Core.Processor
             target.Value = value;
         }
 
+        // Used for LDHL SP, e and ADD SP, e
         public static void LoadWithSignedOffset(IWriteonlyRegister<ushort> target, IReadonlyRegister<ushort> source, sbyte offset, IFlags flags)
         {
             var old = source.Value;

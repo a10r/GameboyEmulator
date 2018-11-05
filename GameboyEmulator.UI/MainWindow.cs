@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Eto.Drawing;
 using Eto.Forms;
 using GameboyEmulator.Core.Emulation;
+using GameboyEmulator.UI.Util;
 
 namespace GameboyEmulator.UI
 {
@@ -35,23 +36,7 @@ namespace GameboyEmulator.UI
             {
                 Application.Instance.AsyncInvoke(() =>
                 {
-                    var stream = new MemoryStream();
-                    //args.Frame.Save(stream);
-                    var bitmap = new Bitmap(new Size(160, 144), PixelFormat.Format24bppRgb);
-                    var bitmapData = bitmap.Lock();
-
-                    for (int x = 0; x < 160; x++)
-                    {
-                        for (int y = 0; y < 144; y++)
-                        {
-                            var pixel = args.Frame.Data[x, y];
-                            bitmapData.SetPixel(x, y, Color.FromArgb(pixel.R, pixel.G, pixel.B, 255));
-                        }
-                    }
-
-                    bitmapData.Dispose();
-
-                    imageView.Image = bitmap;
+                    imageView.Image = args.Frame.ToEtoBitmap();
                 });
             };
 

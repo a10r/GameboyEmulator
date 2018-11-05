@@ -51,8 +51,8 @@ namespace GameboyEmulator.Core.Emulation
             io.Add(0x01, new LambdaRegister<byte>(b => lastSerialByte = b)); // SB serial transfer
             io.Add(0x02, new LambdaRegister<byte>(b => { if (b == 0x81) serialLog.Write(Convert.ToChar(lastSerialByte)); serialLog.Flush(); })); // SC serial clock
 
-            io.Add(0x40, lcdcLogger);
-            io.Add(0x41, statLogger);
+            io.Add(0x40, lcdc);
+            io.Add(0x41, stat);
             io.Add(0x42, scy);
             io.Add(0x43, scx);
             io.Add(0x44, lyLogger);
@@ -86,7 +86,7 @@ namespace GameboyEmulator.Core.Emulation
 
             //SkipBootrom();
 
-            _trace = new StreamWriter($"C:/Users/Andreas/Desktop/trace_{DateTime.Now.ToFileTime()}.txt");
+            //_trace = new StreamWriter($"C:/Users/Andreas/Desktop/trace_{DateTime.Now.ToFileTime()}.txt");
         }
 
         // Debug

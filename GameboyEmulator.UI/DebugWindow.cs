@@ -88,14 +88,10 @@ namespace GameboyEmulator.UI
 
             layout.EndBeginVertical();
 
-            layout.Add(new TextArea
-            {
-                Text = "Log here ...",
-                BackgroundColor = Color.FromRgb(0),
-                TextColor = Color.FromGrayscale(1, 1),
-                Font = new Font("monospace", 10),
-                ReadOnly = true
-            });
+            var tilesetView = new ImageView();
+            tilesetView.BindDataContext(v => v.Image, (DebuggerViewModel vm) => vm.Tileset, DualBindingMode.OneWay);
+
+            layout.Add(tilesetView);
 
             layout.EndVertical();
 

@@ -7,20 +7,33 @@ namespace GameboyEmulator.Core.Video
         public byte R;
         public byte G;
         public byte B;
+
+        public Pixel(byte r, byte g, byte b)
+        {
+            R = r;
+            G = g;
+            B = b;
+        }
     }
 
-    public class Framebuffer
+    public class Bitmap
     {
-        public Pixel[,] Data { get; }
+        private Pixel[,] _data;
+        public int Width { get; }
+        public int Height { get; }
 
-        public Framebuffer(int width, int height)
+        public ref Pixel this[int x, int y] => ref _data[x, y];
+
+        public Bitmap(int width, int height)
         {
-            Data = new Pixel[width, height];
+            _data = new Pixel[width, height];
+            Width = width;
+            Height = height;
         }
 
         public void Save(Stream targetStream)
         {
-            foreach (var pixel in Data)
+            foreach (var pixel in _data)
             {
                 targetStream.WriteByte(pixel.R);
                 targetStream.WriteByte(pixel.G);

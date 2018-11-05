@@ -1,9 +1,12 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Eto.Drawing;
 using GameboyEmulator.Core.Debugger;
 using GameboyEmulator.Core.Emulation;
+using GameboyEmulator.Core.Memory;
 using GameboyEmulator.Core.Processor;
+using GameboyEmulator.UI.Util;
 
 namespace GameboyEmulator.UI
 {
@@ -12,6 +15,7 @@ namespace GameboyEmulator.UI
         private readonly IEmulationControl _emulationControl;
         private string _disassembedProgramText;
         private bool _emulationIsRunning;
+        private Bitmap _tileset;
 
         public DebuggerViewModel(IMachineState state, IEmulationControl emulationControl)
         {
@@ -36,6 +40,16 @@ namespace GameboyEmulator.UI
             set
             {
                 _disassembedProgramText = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public Bitmap Tileset
+        {
+            get => _tileset;
+            set
+            {
+                _tileset = value;
                 OnPropertyChanged();
             }
         }
@@ -86,6 +100,10 @@ namespace GameboyEmulator.UI
         {
             DisassembedProgramText = DisassembleAndFormat(50);
             EmulationIsRunning = _emulationControl.Running;
+
+            // Update tileset
+            Tileset = LcdDebugUtils.RenderTileset(new MemoryPointer(State.Memory, 0x8000)).ToEtoBitmap();
+
             OnPropertyChanged("State");
         }
 
