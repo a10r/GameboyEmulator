@@ -25,6 +25,7 @@ namespace GameboyEmulator.Core.Video
         private readonly IRegister<byte> _scx;
         private readonly IRegister<byte> _scy;
         private readonly IRegister<byte> _scanline; // ly
+        private readonly IRegister<byte> _bgp; // BG palette data
         private readonly IMemoryBlock _vram;
         private readonly IMemoryBlock _oam;
         private readonly IRegister<byte> _if; // TODO: only take one flag
@@ -33,12 +34,14 @@ namespace GameboyEmulator.Core.Video
         private long _globalCounter;
         private long _lastVblank;
         
+
         public LcdController(
             LcdControlRegister lcdc, 
             LcdStatusRegister stat,
             IRegister<byte> scx,
             IRegister<byte> scy,
             IRegister<byte> ly,
+            IRegister<byte> bgp,
             IMemoryBlock vram, 
             IMemoryBlock oam,
             IRegister<byte> @if)
@@ -52,6 +55,7 @@ namespace GameboyEmulator.Core.Video
             _scx = scx;
             _scy = scy;
             _scanline = ly;
+            _bgp = bgp;
             _vram = vram;
             _oam = oam;
             _if = @if;
@@ -139,20 +143,31 @@ namespace GameboyEmulator.Core.Video
 
         private void RenderScanline(int i)
         {
-            if (i >= 144) Console.WriteLine($"Scanline {i}");
+            if (i >= 144) Console.WriteLine($"[debug] Scanline {i}");
 
-            //Debug.Assert(i <= 143);
+            var shades = new[]
+            {
+                new Pixel(255, 255, 255),
+                new Pixel(192, 192, 192),
+                new Pixel(96, 96, 96),
+                new Pixel(0, 0, 0),
+            };
 
             var tilemapOffset = _lcdc.BackgroundTilemap.Value ? 0x1C00 : 0x1800;
-            var tilesetOffset = _lcdc.BackgroundTileset.Value ? 0x0000 : 0x1000;
+            var tilesetOffset = _lcdc.BackgroundTileset.Value ? 0x0000 : 0x0800;
 
-            var globalRow = i + _scy.Value;
+            // Note: scanline and scroll values are pixel based, not tile based
+            var globalRow = (i + _scy.Value) % 256;
 
-            var mapY = globalRow >> 3; // static!
-            var mapX = _scx.Value >> 3;
-            var tileIndex = _vram[tilemapOffset + mapY * 32 + mapX];
-            var tileY = globalRow & 7; // static!
-            var tileX = _scx.Value & 7;
+            var mapY = globalRow >> 3; // static for scanline!
+            var mapX = _scx.Value >> 3; // TODO wrapping
+            var tileIndex = (int)_vram[tilemapOffset + mapY * 32 + mapX];
+            if (_lcdc.BackgroundTileset.Value == false && tileIndex >= 128)
+            {
+                tileIndex -= 256; // TODO test if this works
+            }
+            var tileY = globalRow & 0b111; // static for scanline!
+            var tileX = _scx.Value & 0b111;
             
             for (var x = 0; x < 160; x++)
             {
@@ -161,11 +176,8 @@ namespace GameboyEmulator.Core.Video
                     
                 var shade = (upper.GetBit(7-tileX) ? 2 : 0) + (lower.GetBit(7-tileX) ? 1 : 0);
 
-                // TODO: use proper palette
-                shade = 4 - shade;
-                var color = Color.FromArgb(shade*60, shade*60, shade*60);
-                
-                _framebuffer[x, i] = new Pixel(color.R, color.G, color.B);
+                // map tile shade through BG palette
+                _framebuffer[x, i] = shades[((0b11 << (2*shade)) & _bgp.Value) >> (2*shade)];
 
                 tileX++;
 
@@ -174,6 +186,10 @@ namespace GameboyEmulator.Core.Video
                     tileX = 0;
                     mapX++;
                     tileIndex = _vram[tilemapOffset + mapY * 32 + mapX];
+                    if (_lcdc.BackgroundTileset.Value == false && tileIndex >= 128)
+                    {
+                        tileIndex -= 256; // TODO test if this works
+                    }
                 }
             }
         }

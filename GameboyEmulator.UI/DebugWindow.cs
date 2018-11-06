@@ -21,6 +21,7 @@ namespace GameboyEmulator.UI
             };
 
             layout.BeginVertical();
+
             layout.BeginHorizontal();
 
             var disassemblerTextBox = new AutoLoadingRichTextArea
@@ -70,9 +71,7 @@ namespace GameboyEmulator.UI
             layout.Add(stepButton);
 
             layout.Add(null);
-
-            layout.EndVertical();
-
+            
             _registerFieldControl = new RegisterFieldControl(viewModel.State.Registers);
             layout.Add(_registerFieldControl);
 
@@ -84,14 +83,27 @@ namespace GameboyEmulator.UI
                 }
             };
 
-            layout.EndHorizontal();
+            layout.EndVertical();
 
+            layout.EndBeginHorizontal();
+            
             layout.EndBeginVertical();
 
             var tilesetView = new ImageView();
             tilesetView.BindDataContext(v => v.Image, (DebuggerViewModel vm) => vm.Tileset, DualBindingMode.OneWay);
+            layout.AddColumn(tilesetView, new Label { Text = "Tileset" });
 
-            layout.Add(tilesetView);
+            layout.EndBeginVertical();
+
+            var tilemap0View = new ImageView();
+            tilemap0View.BindDataContext(v => v.Image, (DebuggerViewModel vm) => vm.Tilemap0, DualBindingMode.OneWay);
+            layout.AddColumn(tilemap0View, new Label { Text = "Tilemap #0" });
+
+            layout.EndBeginVertical();
+
+            var tilemap1View = new ImageView();
+            tilemap1View.BindDataContext(v => v.Image, (DebuggerViewModel vm) => vm.Tilemap1, DualBindingMode.OneWay);
+            layout.AddColumn(tilemap1View, new Label { Text = "Tilemap #1" });
 
             layout.EndVertical();
 

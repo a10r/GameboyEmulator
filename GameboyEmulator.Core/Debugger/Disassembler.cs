@@ -811,8 +811,8 @@ namespace GameboyEmulator.Core.Debugger
 
                 case 0x18:
                     {
-                        var e = next();
-                        return new Instruction("JR e", count);
+                        var e = (sbyte)next();
+                        return new Instruction($"JR {e}", count);
                     }
 
                 #endregion

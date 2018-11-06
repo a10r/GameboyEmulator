@@ -15,6 +15,12 @@ namespace GameboyEmulator.UI
             var emulator = new EmulationEngine { Running = true };
             Task.Run(() => emulator.Run());
 
+            // Debug window
+            var debugViewModel = new DebuggerViewModel(emulator.State, emulator);
+            new DebugWindow(debugViewModel).Show();
+
+            var frameCount = 0;
+
             Task.Run(async () =>
             {
                 long last = emulator.ElapsedCycles;
@@ -24,9 +30,10 @@ namespace GameboyEmulator.UI
                     var elapsed = emulator.ElapsedCycles - last;
                     if (emulator.Running)
                     {
-                        Console.WriteLine($"{(float)elapsed / 1000000} MHz");
+                        Console.WriteLine($"{(float)elapsed / 1000000} MHz, {frameCount} fps");
                     }
                     last = emulator.ElapsedCycles;
+                    frameCount = 0;
                 }
             });
 
@@ -34,9 +41,12 @@ namespace GameboyEmulator.UI
 
             emulator.FrameSource.NewFrame += (sender, args) =>
             {
+                frameCount++;
                 Application.Instance.AsyncInvoke(() =>
                 {
                     imageView.Image = args.Frame.ToEtoBitmap();
+                    
+                    debugViewModel.Refresh();
                 });
             };
 
@@ -47,8 +57,6 @@ namespace GameboyEmulator.UI
             };
 
             Resizable = false;
-
-            new DebugWindow(new DebuggerViewModel(emulator.State, emulator)).Show();
         }
     }
 }

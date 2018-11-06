@@ -41,6 +41,8 @@ namespace GameboyEmulator.Core.Emulation
             
             var lyLogger = new LoggingRegister<byte>(ly, "ly", _logger, logReads: false);
 
+            var bgp = new Register<byte>();
+
             var @if = new Register<byte>();
             var ie = new Register<byte>();
 
@@ -56,7 +58,7 @@ namespace GameboyEmulator.Core.Emulation
             io.Add(0x42, scy);
             io.Add(0x43, scx);
             io.Add(0x44, lyLogger);
-
+            io.Add(0x47, bgp);
             io.Add(0x50, bootromEnable);
 
             io.Add(0x0F, @if);
@@ -65,11 +67,10 @@ namespace GameboyEmulator.Core.Emulation
             var memoryMap = new TopLevelMemoryMap(
                 new ShadowedMemoryBlock(
                     MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/DMG_ROM.bin"),
-                    //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/Tetris.gb"),
+                    MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/Tetris.gb"),
                     //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/DrMario.gb"),
                     //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/gb-test-roms/cpu_instrs/cpu_instrs.gb"),
                     //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/gb-test-roms/cpu_instrs/individual/09-op r,r.gb"),
-                    MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/gb-test-roms/cpu_instrs/individual/03-op sp,hl.gb"),
                     new BoolPointer(bootromEnable, 0)
                     ),
                 new MemoryBlock(8192), // cartridge ram TODO cartridge types!
@@ -81,7 +82,7 @@ namespace GameboyEmulator.Core.Emulation
             State = new MachineState(new RegisterField(), memoryMap);
             _loggingState = new MachineState(State.Registers,
                 new LoggingMemoryBlock(State.Memory, _logger));
-            _lcdController = new LcdController(lcdc, stat, scx, scy, ly,
+            _lcdController = new LcdController(lcdc, stat, scx, scy, ly, bgp,
                 vram, oam, @if);
 
             //SkipBootrom();
@@ -222,7 +223,7 @@ namespace GameboyEmulator.Core.Emulation
 
             while (!Running)
             {
-                Thread.Sleep(10000);
+                Thread.Sleep(1000);
             }
 
             goto runLoop;

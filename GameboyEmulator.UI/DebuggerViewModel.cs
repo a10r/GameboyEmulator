@@ -1,12 +1,13 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Text;
-using Eto.Drawing;
+using EtoBitmap = Eto.Drawing.Bitmap;
 using GameboyEmulator.Core.Debugger;
 using GameboyEmulator.Core.Emulation;
 using GameboyEmulator.Core.Memory;
 using GameboyEmulator.Core.Processor;
 using GameboyEmulator.UI.Util;
+using GameboyEmulator.Core.Video;
 
 namespace GameboyEmulator.UI
 {
@@ -15,13 +16,17 @@ namespace GameboyEmulator.UI
         private readonly IEmulationControl _emulationControl;
         private string _disassembedProgramText;
         private bool _emulationIsRunning;
-        private Bitmap _tileset;
+        private EtoBitmap _tileset;
+        private EtoBitmap _tilemap1;
+        private EtoBitmap _tilemap2;
 
         public DebuggerViewModel(IMachineState state, IEmulationControl emulationControl)
         {
             State = state;
             _emulationControl = emulationControl;
             Refresh();
+
+            
         }
 
         public bool EmulationIsRunning
@@ -44,12 +49,32 @@ namespace GameboyEmulator.UI
             }
         }
 
-        public Bitmap Tileset
+        public EtoBitmap Tileset
         {
             get => _tileset;
             set
             {
                 _tileset = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public EtoBitmap Tilemap0
+        {
+            get => _tilemap1;
+            set
+            {
+                _tilemap1 = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public EtoBitmap Tilemap1
+        {
+            get => _tilemap2;
+            set
+            {
+                _tilemap2 = value;
                 OnPropertyChanged();
             }
         }
@@ -100,9 +125,16 @@ namespace GameboyEmulator.UI
         {
             DisassembedProgramText = DisassembleAndFormat(50);
             EmulationIsRunning = _emulationControl.Running;
-
-            // Update tileset
+            
             Tileset = LcdDebugUtils.RenderTileset(new MemoryPointer(State.Memory, 0x8000)).ToEtoBitmap();
+            // TODO can be cleaned up maybe
+            var tilesetSelect = new BoolPointer(new MemoryPointer(State.Memory, 0xFF40), 4);
+            var scy = State.Memory[0xFF42];
+            var scx = State.Memory[0xFF43];
+            Tilemap0 = LcdDebugUtils.RenderTilemap(new MemoryPointer(State.Memory, 0x8000), new Register<bool>(false), tilesetSelect)
+                .DrawRectangle(scx, scy, 160, 144).ToEtoBitmap();
+            Tilemap1 = LcdDebugUtils.RenderTilemap(new MemoryPointer(State.Memory, 0x8000), new Register<bool>(true), tilesetSelect)
+                .DrawRectangle(scx, scy, 160, 144).ToEtoBitmap();
 
             OnPropertyChanged("State");
         }

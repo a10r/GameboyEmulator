@@ -7,17 +7,6 @@ namespace GameboyEmulator.Core.Debugger
 {
     public static class LcdDebugUtils
     {
-        public static void Overlay(this Bitmap bottom, Bitmap top, int x, int y)
-        {
-            for (int iy = 0; iy < top.Height; iy++)
-            {
-                for (int ix = 0; ix < top.Width; ix++)
-                {
-                    bottom[x + ix, y + iy] = top[ix, iy];
-                }
-            }
-        }
-
         public static Bitmap RenderTile(IMemoryBlock vram, int tileIndex)
         {
             if (tileIndex < 0 || tileIndex >= 384)
@@ -68,6 +57,43 @@ namespace GameboyEmulator.Core.Debugger
             }
 
             return tileset;
+        }
+
+        public static Bitmap RenderTilemapSmall(IMemoryBlock vram, IRegister<bool> tilemapSelect)
+        {
+            var tilemap = new Bitmap(32, 32);
+            var tilemapOffset = tilemapSelect.Value ? 0x1C00 : 0x1800;
+            
+            for (int i = 0; i < 1024; i++)
+            {
+                var x = i % 32;
+                var y = i / 32;
+                var tileIndex = vram[tilemapOffset + y * 32 + x];
+                tilemap[x, y] = tileIndex != 0 ? new Pixel(tileIndex, tileIndex, tileIndex) : new Pixel(0xFF, 0xFF, 0xFF);
+            }
+
+            return tilemap;
+        }
+        
+        public static Bitmap RenderTilemap(IMemoryBlock vram, IRegister<bool> tilemapSelect, IRegister<bool> tilesetSelect)
+        {
+            var tilemap = new Bitmap(256, 256);
+            var tilemapOffset = tilemapSelect.Value ? 0x1C00 : 0x1800;
+            
+            for (int i = 0; i < 1024; i++)
+            {
+                var x = i % 32;
+                var y = i / 32;
+                var tileIndex = (int)vram[tilemapOffset + y * 32 + x];
+                // TODO may not be correct
+                if (tilesetSelect.Value == false && tileIndex < 128)
+                {
+                    tileIndex += 256;
+                }
+                tilemap.Overlay(RenderTile(vram, tileIndex), 8 * x, 8 * y);
+            }
+
+            return tilemap;
         }
     }
 }

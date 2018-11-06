@@ -2,6 +2,13 @@
 {
     public class Register<T> : IRegister<T>
     {
+        public Register() { }
+
+        public Register(T v)
+        {
+            Value = v;
+        }
+
         public T Value { get; set; }
 
         public override string ToString() 
