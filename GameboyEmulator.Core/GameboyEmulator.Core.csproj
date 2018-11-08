@@ -56,6 +56,7 @@
     <Compile Include="Debugger\LcdDebugUtils.cs" />
     <Compile Include="Debugger\LoggingRegister.cs" />
     <Compile Include="Emulation\MachineState.cs" />
+    <Compile Include="IO\ButtonInputRegister.cs" />
     <Compile Include="Memory\AddressableRegisterField.cs" />
     <Compile Include="Memory\BoolPointer.cs" />
     <Compile Include="Memory\MemoryPointer.cs" />

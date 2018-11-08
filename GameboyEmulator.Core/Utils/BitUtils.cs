@@ -45,6 +45,20 @@ namespace GameboyEmulator.Core.Utils
             return b;
         }
 
+        public static ref byte SetBitByRef(ref this byte b, int index, bool value)
+        {
+            if (value)
+            {
+                b |= (byte)(1 << index);
+            }
+            else
+            {
+                b &= (byte)(~(1 << index));
+            }
+
+            return ref b;
+        }
+
         public static byte SetBit(this byte b, int index, bool value)
         {
             if (value)

@@ -168,7 +168,16 @@ namespace GameboyEmulator.Core.Video
                 }
             }
         }
+
+        private int TileIndex(int mapX, int mapY)
+        {
+            var tilemapOffset = _lcdc.BackgroundTilemap.Value ? 0x1C00 : 0x1800;
+            var tileIndex = (int)_vram[tilemapOffset + mapY * 32 + mapX];
+            if (_lcdc.BackgroundTileset.Value == false && tileIndex < 128)
+            {
+                tileIndex += 256;
             }
+            return tileIndex;
         }
 
         private void RenderScanline(int i)
@@ -182,19 +191,12 @@ namespace GameboyEmulator.Core.Video
                 new Pixel(96, 96, 96),
                 new Pixel(0, 0, 0),
             };
-
-            var tilemapOffset = _lcdc.BackgroundTilemap.Value ? 0x1C00 : 0x1800;
-
             // Note: scanline and scroll values are pixel based, not tile based
             var globalRow = (i + _scy.Value) % 256;
 
             var mapY = globalRow >> 3; // static for scanline!
             var mapX = _scx.Value >> 3; // TODO wrapping
-            var tileIndex = (int)_vram[tilemapOffset + mapY * 32 + mapX];
-            if (_lcdc.BackgroundTileset.Value == false && tileIndex < 128)
-            {
-                tileIndex += 256;
-            }
+            var tileIndex = TileIndex(mapX, mapY);
             var tileY = globalRow & 0b111; // static for scanline!
             var tileX = _scx.Value & 0b111;
             
@@ -214,11 +216,7 @@ namespace GameboyEmulator.Core.Video
                 {
                     tileX = 0;
                     mapX++;
-                    tileIndex = _vram[tilemapOffset + mapY * 32 + mapX];
-                    if (_lcdc.BackgroundTileset.Value == false && tileIndex < 128)
-                    {
-                        tileIndex += 256;
-                    }
+                    tileIndex = TileIndex(mapX, mapY);
                 }
             }
         }

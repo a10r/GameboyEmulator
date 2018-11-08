@@ -22,6 +22,37 @@ namespace GameboyEmulator.UI
 
             var frameCount = 0;
 
+            // Very basic key input handling
+            KeyDown += (s, e) =>
+            {
+                switch (e.Key)
+                {
+                    case Keys.Up: emulator.Buttons.Up = true; break;
+                    case Keys.Down: emulator.Buttons.Down = true; break;
+                    case Keys.Left: emulator.Buttons.Left = true; break;
+                    case Keys.Right: emulator.Buttons.Right = true; break;
+                    case Keys.X: emulator.Buttons.A = true; break;
+                    case Keys.C: emulator.Buttons.B = true; break;
+                    case Keys.V: emulator.Buttons.Start = true; break;
+                    case Keys.B: emulator.Buttons.Select = true; break;
+                }
+            };
+
+            KeyUp += (s, e) =>
+            {
+                switch (e.Key)
+                {
+                    case Keys.Up: emulator.Buttons.Up = false; break;
+                    case Keys.Down: emulator.Buttons.Down = false; break;
+                    case Keys.Left: emulator.Buttons.Left = false; break;
+                    case Keys.Right: emulator.Buttons.Right = false; break;
+                    case Keys.X: emulator.Buttons.A = false; break;
+                    case Keys.C: emulator.Buttons.B = false; break;
+                    case Keys.V: emulator.Buttons.Start = false; break;
+                    case Keys.B: emulator.Buttons.Select = false; break;
+                }
+            };
+
             Task.Run(async () =>
             {
                 long last = emulator.ElapsedCycles;

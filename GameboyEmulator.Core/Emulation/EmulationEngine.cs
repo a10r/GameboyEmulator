@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using GameboyEmulator.Core.Debugger;
+using GameboyEmulator.Core.IO;
 using GameboyEmulator.Core.Memory;
 using GameboyEmulator.Core.Processor;
 using GameboyEmulator.Core.Utils;
@@ -16,6 +17,8 @@ namespace GameboyEmulator.Core.Emulation
         private readonly LcdController _lcdController;
         private readonly TextWriter _logger;
         private readonly IMachineState _loggingState;
+
+        public IButtonState Buttons { get; private set; }
 
         public EmulationEngine()
         {
@@ -30,6 +33,9 @@ namespace GameboyEmulator.Core.Emulation
             {
                 io.Add(i, new Register<byte>());
             }
+
+            var p1 = new ButtonInputRegister();
+            Buttons = p1;
 
             var lcdc = new LcdControlRegister();
             var lcdcLogger = new LoggingRegister<byte>(lcdc, "lcdc", _logger, logReads: false);
@@ -49,8 +55,11 @@ namespace GameboyEmulator.Core.Emulation
 
             var bootromEnable = new Register<byte>();
 
+            io.Add(0x00, p1);
+
             var serialLog = new StreamWriter("C:/Users/Andreas/Dropbox/DMG/serial_log.txt", true);
             var lastSerialByte = 0;
+
             io.Add(0x01, new LambdaRegister<byte>(b => lastSerialByte = b)); // SB serial transfer
             io.Add(0x02, new LambdaRegister<byte>(b => { if (b == 0x81) serialLog.Write(Convert.ToChar(lastSerialByte)); serialLog.Flush(); })); // SC serial clock
 
@@ -143,6 +152,7 @@ namespace GameboyEmulator.Core.Emulation
             if (State.Halted)
             {
                 _lcdController.Tick();
+                ElapsedCycles += 1;
             }
             else
             {
@@ -167,7 +177,7 @@ namespace GameboyEmulator.Core.Emulation
 
                 State.InterruptMasterEnable = false;
                 
-                _logger.WriteLine($"Servicing interrupt ... {State.Memory[0xFF0F].ToBinaryString()} {State.Memory[0xFFFF].ToBinaryString()} {firedInterrupts.ToBinaryString()} {ElapsedCycles - _c}");
+                //_logger.WriteLine($"Servicing interrupt ... {State.Memory[0xFF0F].ToBinaryString()} {State.Memory[0xFFFF].ToBinaryString()} {firedInterrupts.ToBinaryString()} {ElapsedCycles - _c}");
                 _c = ElapsedCycles;
 
                 if (firedInterrupts.GetBit(0)) // VBlank
