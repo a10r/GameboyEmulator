@@ -8,5 +8,7 @@ namespace GameboyEmulator.Core.Emulation
         IMemoryBlock Memory { get; }
         IStack Stack { get; }
         bool InterruptMasterEnable { get; set; }
+        bool Halted { get; set; }
+        bool Stopped { get; set; }
     }
 }

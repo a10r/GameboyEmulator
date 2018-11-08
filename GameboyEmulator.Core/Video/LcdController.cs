@@ -24,7 +24,8 @@ namespace GameboyEmulator.Core.Video
 
         private readonly IRegister<byte> _scx;
         private readonly IRegister<byte> _scy;
-        private readonly IRegister<byte> _scanline; // ly
+        private readonly IRegister<byte> _ly; // current scanline
+        private readonly IRegister<byte> _lyc;
         private readonly IRegister<byte> _bgp; // BG palette data
         private readonly IMemoryBlock _vram;
         private readonly IMemoryBlock _oam;
@@ -41,6 +42,7 @@ namespace GameboyEmulator.Core.Video
             IRegister<byte> scx,
             IRegister<byte> scy,
             IRegister<byte> ly,
+            IRegister<byte> lyc,
             IRegister<byte> bgp,
             IMemoryBlock vram, 
             IMemoryBlock oam,
@@ -54,7 +56,8 @@ namespace GameboyEmulator.Core.Video
             _stat = stat;
             _scx = scx;
             _scy = scy;
-            _scanline = ly;
+            _ly = ly;
+            _lyc = lyc;
             _bgp = bgp;
             _vram = vram;
             _oam = oam;
@@ -88,8 +91,8 @@ namespace GameboyEmulator.Core.Video
                 case LcdMode.HorizontalBlank:
                     if (_counter >= 204)
                     {
-                        _scanline.Value++;
-                        if (_scanline.Value == 144) // TODO maybe 143???
+                        _ly.Value++;
+                        if (_ly.Value == 144) // TODO maybe 143???
                         {
                             ChangeMode(LcdMode.VerticalBlank);
                         }
@@ -103,15 +106,20 @@ namespace GameboyEmulator.Core.Video
                     // TODO this is wrong, maybe?
                     if (_counter >= 456)
                     {
-                        _scanline.Value++;
+                        _ly.Value++;
                         _counter = 0; // TODO re-check
                     }
-                    if (_scanline.Value == 154)
+                    if (_ly.Value == 154)
                     {
-                        _scanline.Value = 0;
+                        _ly.Value = 0;
                         ChangeMode(LcdMode.OamSearch);
                     }
                     break;
+            }
+
+            if (_ly.Value == _lyc.Value && _stat.ScanlineCoincidenceInterruptEnabled.Value)
+            {
+                _if.SetBit(1, true);
             }
 
             _stat.Mode = _currentMode; // TODO
@@ -123,11 +131,25 @@ namespace GameboyEmulator.Core.Video
             _currentMode = newMode;
             _counter = 0;
 
-            if (newMode == LcdMode.HorizontalBlank)
+            if (newMode == LcdMode.OamSearch)
             {
-                RenderScanline(_scanline.Value);
-                // TODO: HBlank interrupt
-                _if.SetBit(1, true);
+                if (_stat.OamSearchInterruptEnabled.Value)
+                {
+                    _if.SetBit(1, true);
+                }
+            }
+            else if (newMode == LcdMode.DataTransfer)
+            {
+                // Do nothing.
+            }
+            else if (newMode == LcdMode.HorizontalBlank)
+            {
+                RenderScanline(_ly.Value);
+
+                if (_stat.HBlankInterruptEnabled.Value)
+                {
+                    _if.SetBit(1, true);
+                }
             }
             else if (newMode == LcdMode.VerticalBlank)
             {
@@ -136,8 +158,16 @@ namespace GameboyEmulator.Core.Video
                 
 
                 OnCompletedFrame();
-                // TODO: VBlank interrupt
+                
                 _if.SetBit(0, true);
+
+                // TODO does vblank really have two interrupts?
+                if (_stat.VBlankInterruptEnabled.Value)
+                {
+                    _if.SetBit(0, true);
+                }
+            }
+        }
             }
         }
 
@@ -154,7 +184,6 @@ namespace GameboyEmulator.Core.Video
             };
 
             var tilemapOffset = _lcdc.BackgroundTilemap.Value ? 0x1C00 : 0x1800;
-            var tilesetOffset = _lcdc.BackgroundTileset.Value ? 0x0000 : 0x0800;
 
             // Note: scanline and scroll values are pixel based, not tile based
             var globalRow = (i + _scy.Value) % 256;
@@ -162,17 +191,17 @@ namespace GameboyEmulator.Core.Video
             var mapY = globalRow >> 3; // static for scanline!
             var mapX = _scx.Value >> 3; // TODO wrapping
             var tileIndex = (int)_vram[tilemapOffset + mapY * 32 + mapX];
-            if (_lcdc.BackgroundTileset.Value == false && tileIndex >= 128)
+            if (_lcdc.BackgroundTileset.Value == false && tileIndex < 128)
             {
-                tileIndex -= 256; // TODO test if this works
+                tileIndex += 256;
             }
             var tileY = globalRow & 0b111; // static for scanline!
             var tileX = _scx.Value & 0b111;
             
             for (var x = 0; x < 160; x++)
             {
-                var lower = _vram[tilesetOffset + tileIndex * 16 + tileY * 2];
-                var upper = _vram[tilesetOffset + tileIndex * 16 + tileY * 2 + 1];
+                var lower = _vram[tileIndex * 16 + tileY * 2];
+                var upper = _vram[tileIndex * 16 + tileY * 2 + 1];
                     
                 var shade = (upper.GetBit(7-tileX) ? 2 : 0) + (lower.GetBit(7-tileX) ? 1 : 0);
 
@@ -186,9 +215,9 @@ namespace GameboyEmulator.Core.Video
                     tileX = 0;
                     mapX++;
                     tileIndex = _vram[tilemapOffset + mapY * 32 + mapX];
-                    if (_lcdc.BackgroundTileset.Value == false && tileIndex >= 128)
+                    if (_lcdc.BackgroundTileset.Value == false && tileIndex < 128)
                     {
-                        tileIndex -= 256; // TODO test if this works
+                        tileIndex += 256;
                     }
                 }
             }

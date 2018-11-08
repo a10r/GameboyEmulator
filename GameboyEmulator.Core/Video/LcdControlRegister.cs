@@ -6,6 +6,7 @@ namespace GameboyEmulator.Core.Video
     {
         public byte Value { get; set; }
 
+        // TODO maybe switch to IReadonlyRegister?
         public IRegister<bool> BackgroundEnable { get; private set; }
         public IRegister<bool> SpriteEnable { get; private set; }
 

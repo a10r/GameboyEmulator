@@ -5,11 +5,17 @@ namespace GameboyEmulator.Core.Video
 {
     public class LcdStatusRegister : IRegister<byte>
     {
+        // TODO maybe just use a bool getter
+        public IReadonlyRegister<bool> ScanlineCoincidenceInterruptEnabled { get; }
+        public IReadonlyRegister<bool> OamSearchInterruptEnabled { get; }
+        public IReadonlyRegister<bool> VBlankInterruptEnabled { get; }
+        public IReadonlyRegister<bool> HBlankInterruptEnabled { get; }
+
         public LcdMode Mode
         {
             get
             {
-                return (LcdMode) ((Value.GetBit(1) ? 2 : 0) + (Value.GetBit(0) ? 1 : 0)); // TODO improve this
+                return (LcdMode) (Value & 0b11);
             }
             set
             {
@@ -19,8 +25,16 @@ namespace GameboyEmulator.Core.Video
             }
         }
 
-        // TODO: match + interrupt
+        // TODO bit 2!
 
         public byte Value { get; set; }
+
+        public LcdStatusRegister()
+        {
+            ScanlineCoincidenceInterruptEnabled = new BoolPointer(this, 6);
+            OamSearchInterruptEnabled = new BoolPointer(this, 5);
+            VBlankInterruptEnabled = new BoolPointer(this, 4); // TODO why tho?
+            HBlankInterruptEnabled = new BoolPointer(this, 3);
+        }
     }
 }

@@ -17,7 +17,8 @@ namespace GameboyEmulator.UI
 
             // Debug window
             var debugViewModel = new DebuggerViewModel(emulator.State, emulator);
-            new DebugWindow(debugViewModel).Show();
+            var debugWindow = new DebugWindow(debugViewModel);
+            debugWindow.Show();
 
             var frameCount = 0;
 
@@ -30,7 +31,11 @@ namespace GameboyEmulator.UI
                     var elapsed = emulator.ElapsedCycles - last;
                     if (emulator.Running)
                     {
-                        Console.WriteLine($"{(float)elapsed / 1000000} MHz, {frameCount} fps");
+                        var newTitle = $"Debugger ({(float)elapsed / 1000000} MHz, {frameCount} fps)";
+                        Application.Instance.AsyncInvoke(() => 
+                        {
+                            debugWindow.Title = newTitle;
+                        });
                     }
                     last = emulator.ElapsedCycles;
                     frameCount = 0;

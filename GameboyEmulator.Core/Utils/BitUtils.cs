@@ -31,7 +31,7 @@ namespace GameboyEmulator.Core.Utils
         public static bool GetBit(this IReadonlyRegister<byte> b, int index) => b.Value.GetBit(index);
         public static bool GetBit(this IReadonlyRegister<ushort> s, int index) => s.Value.GetBit(index);
 
-        public static void SetBit(this IRegister<byte> b, int index, bool value)
+        public static IRegister<byte> SetBit(this IRegister<byte> b, int index, bool value)
         {
             if (value)
             {
@@ -41,9 +41,11 @@ namespace GameboyEmulator.Core.Utils
             {
                 b.Value &= (byte)(~(1 << index));
             }
+
+            return b;
         }
 
-        public static void SetBit(ref this byte b, int index, bool value)
+        public static byte SetBit(this byte b, int index, bool value)
         {
             if (value)
             {
@@ -53,6 +55,8 @@ namespace GameboyEmulator.Core.Utils
             {
                 b &= (byte)(~(1 << index));
             }
+
+            return b;
         }
 
         public static byte GetLow(this ushort s) => (byte)s;

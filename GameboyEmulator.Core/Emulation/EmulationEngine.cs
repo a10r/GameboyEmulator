@@ -40,6 +40,7 @@ namespace GameboyEmulator.Core.Emulation
             var ly = new Register<byte>();
             
             var lyLogger = new LoggingRegister<byte>(ly, "ly", _logger, logReads: false);
+            var lyc = new Register<byte>();
 
             var bgp = new Register<byte>();
 
@@ -58,6 +59,7 @@ namespace GameboyEmulator.Core.Emulation
             io.Add(0x42, scy);
             io.Add(0x43, scx);
             io.Add(0x44, lyLogger);
+            io.Add(0x45, lyc);
             io.Add(0x47, bgp);
             io.Add(0x50, bootromEnable);
 
@@ -70,7 +72,7 @@ namespace GameboyEmulator.Core.Emulation
                     MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/Tetris.gb"),
                     //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/DrMario.gb"),
                     //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/gb-test-roms/cpu_instrs/cpu_instrs.gb"),
-                    //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/gb-test-roms/cpu_instrs/individual/09-op r,r.gb"),
+                    //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/gb-test-roms/cpu_instrs/individual/02-interrupts.gb"),
                     new BoolPointer(bootromEnable, 0)
                     ),
                 new MemoryBlock(8192), // cartridge ram TODO cartridge types!
@@ -82,7 +84,7 @@ namespace GameboyEmulator.Core.Emulation
             State = new MachineState(new RegisterField(), memoryMap);
             _loggingState = new MachineState(State.Registers,
                 new LoggingMemoryBlock(State.Memory, _logger));
-            _lcdController = new LcdController(lcdc, stat, scx, scy, ly, bgp,
+            _lcdController = new LcdController(lcdc, stat, scx, scy, ly, lyc, bgp,
                 vram, oam, @if);
 
             //SkipBootrom();
@@ -133,22 +135,30 @@ namespace GameboyEmulator.Core.Emulation
             //    }
             //}
 
-            var cycles = Cpu.ExecuteNextInstruction(State);
-            ElapsedCycles += cycles;
+            if (State.Stopped)
+            {
+                Console.WriteLine("Stopped!");
+            }
 
-            for (var i = 0; i < cycles; i++)
+            if (State.Halted)
             {
                 _lcdController.Tick();
             }
+            else
+            {
+                var cycles = Cpu.ExecuteNextInstruction(State);
+                ElapsedCycles += cycles;
 
-            //Console.WriteLine($"Scanline: {State.Memory[0xFF44]}");
+                for (var i = 0; i < cycles; i++)
+                {
+                    _lcdController.Tick();
+                }
+            }
 
             // Handle interrupts
-            // TODO: take IE flags into account
-            if (State.InterruptMasterEnable && State.Memory[0xFF0F] != 0 && State.Memory[0x0FFFF] != 0)
+            var firedInterrupts = (byte)(State.Memory[0xFF0F] & State.Memory[0xFFFF]);
+            if (State.InterruptMasterEnable && firedInterrupts != 0)
             {
-                var firedInterrupts = (byte)(State.Memory[0xFF0F] & State.Memory[0xFFFF]);
-
                 // Save PC
                 // TODO: push 16 bit values onto the stack in one call
                 var pc = State.Registers.PC.Value;
@@ -160,30 +170,30 @@ namespace GameboyEmulator.Core.Emulation
                 _logger.WriteLine($"Servicing interrupt ... {State.Memory[0xFF0F].ToBinaryString()} {State.Memory[0xFFFF].ToBinaryString()} {firedInterrupts.ToBinaryString()} {ElapsedCycles - _c}");
                 _c = ElapsedCycles;
 
-                //Running = false;
-
-                if (firedInterrupts.GetBit(0))
+                if (firedInterrupts.GetBit(0)) // VBlank
                 {
                     State.Registers.PC.Value = 0x0040;
-                    State.Memory[0xFF0F] = (byte)(State.Memory[0xFF0F] & (255 - 0x1));
+                    State.Memory[0xFF0F] = State.Memory[0xFF0F].SetBit(0, false);
                 }
-                else if (firedInterrupts.GetBit(1))
+                else if (firedInterrupts.GetBit(1)) // LCD status
                 {
                     State.Registers.PC.Value = 0x0048;
-                    State.Memory[0xFF0F] = (byte)(State.Memory[0xFF0F] & (255 - 0x2));
+                    State.Memory[0xFF0F] = State.Memory[0xFF0F].SetBit(1, false);
                 }
-                // TODO finish other interrupts
-                else if (firedInterrupts.GetBit(2))
+                else if (firedInterrupts.GetBit(2)) // Timer
                 {
                     State.Registers.PC.Value = 0x0050;
+                    State.Memory[0xFF0F] = State.Memory[0xFF0F].SetBit(2, false);
                 }
-                else if (firedInterrupts.GetBit(3))
+                else if (firedInterrupts.GetBit(3)) // Serial link
                 {
                     State.Registers.PC.Value = 0x0058;
+                    State.Memory[0xFF0F] = State.Memory[0xFF0F].SetBit(3, false);
                 }
-                else if (firedInterrupts.GetBit(4))
+                else if (firedInterrupts.GetBit(4)) // Keypad press
                 {
                     State.Registers.PC.Value = 0x0060;
+                    State.Memory[0xFF0F] = State.Memory[0xFF0F].SetBit(4, false);
                 }
             }
         }

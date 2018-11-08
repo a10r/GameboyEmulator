@@ -923,11 +923,11 @@ namespace GameboyEmulator.Core.Processor
                         return 4;
                     }
                 #endregion
-
+                    
                 #region HALT
                 case 0x76:
                     {
-                        throw new NotImplementedException();
+                        m.Halted = true;
                         return 4;
                     }
                 #endregion
@@ -935,7 +935,7 @@ namespace GameboyEmulator.Core.Processor
                 #region STOP
                 case 0x10:
                     {
-                        throw new NotImplementedException();
+                        m.Stopped = true;
                         return 4;
                     }
                 #endregion
