@@ -1,11 +1,6 @@
 ﻿using GameboyEmulator.Core.Debugger;
 using GameboyEmulator.Core.Memory;
 using GameboyEmulator.Core.Utils;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GameboyEmulator.Core.IO
 {

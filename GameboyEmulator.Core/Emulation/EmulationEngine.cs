@@ -49,6 +49,8 @@ namespace GameboyEmulator.Core.Emulation
             var lyc = new Register<byte>();
 
             var bgp = new Register<byte>();
+            var obp0 = new Register<byte>();
+            var obp1 = new Register<byte>();
 
             var @if = new Register<byte>();
             var ie = new Register<byte>();
@@ -70,6 +72,8 @@ namespace GameboyEmulator.Core.Emulation
             io.Add(0x44, lyLogger);
             io.Add(0x45, lyc);
             io.Add(0x47, bgp);
+            io.Add(0x48, obp0);
+            io.Add(0x49, obp1);
             io.Add(0x50, bootromEnable);
 
             io.Add(0x0F, @if);
@@ -78,7 +82,8 @@ namespace GameboyEmulator.Core.Emulation
             var memoryMap = new TopLevelMemoryMap(
                 new ShadowedMemoryBlock(
                     MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/DMG_ROM.bin"),
-                    MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/Tetris.gb"),
+                    //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/Tetris.gb"),
+                    MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/ttt.gb"),
                     //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/DrMario.gb"),
                     //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/gb-test-roms/cpu_instrs/cpu_instrs.gb"),
                     //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/gb-test-roms/cpu_instrs/individual/02-interrupts.gb"),
@@ -94,7 +99,7 @@ namespace GameboyEmulator.Core.Emulation
             _loggingState = new MachineState(State.Registers,
                 new LoggingMemoryBlock(State.Memory, _logger));
             _lcdController = new LcdController(lcdc, stat, scx, scy, ly, lyc, bgp,
-                vram, oam, @if);
+                vram, oam, obp0, obp1, @if);
 
             //SkipBootrom();
 

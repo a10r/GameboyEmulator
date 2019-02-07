@@ -26,7 +26,9 @@ namespace GameboyEmulator.Core.Video
         private readonly IRegister<byte> _scy;
         private readonly IRegister<byte> _ly; // current scanline
         private readonly IRegister<byte> _lyc;
-        private readonly IRegister<byte> _bgp; // BG palette data
+        private readonly IRegister<byte> _bgp; // BG palette
+        private readonly IRegister<byte> _obp0; // OBJ palette 0
+        private readonly IRegister<byte> _obp1; // OBJ palette 1
         private readonly IMemoryBlock _vram;
         private readonly IMemoryBlock _oam;
         private readonly IRegister<byte> _if; // TODO: only take one flag
@@ -34,18 +36,20 @@ namespace GameboyEmulator.Core.Video
 
         private long _globalCounter;
         private long _lastVblank;
-        
+
 
         public LcdController(
-            LcdControlRegister lcdc, 
+            LcdControlRegister lcdc,
             LcdStatusRegister stat,
             IRegister<byte> scx,
             IRegister<byte> scy,
             IRegister<byte> ly,
             IRegister<byte> lyc,
             IRegister<byte> bgp,
-            IMemoryBlock vram, 
+            IMemoryBlock vram,
             IMemoryBlock oam,
+            IRegister<byte> obp0,
+            IRegister<byte> obp1,
             IRegister<byte> @if)
         {
             Debug.Assert(vram.Size == 8192);
@@ -61,6 +65,8 @@ namespace GameboyEmulator.Core.Video
             _bgp = bgp;
             _vram = vram;
             _oam = oam;
+            _obp0 = obp0;
+            _obp1 = obp1;
             _if = @if;
         }
 
@@ -155,10 +161,10 @@ namespace GameboyEmulator.Core.Video
             {
                 //Console.WriteLine($"Vblank after {_globalCounter - _lastVblank} cycles.");
                 _lastVblank = _globalCounter;
-                
+
 
                 OnCompletedFrame();
-                
+
                 _if.SetBit(0, true);
 
                 // TODO does vblank really have two interrupts?
@@ -169,46 +175,62 @@ namespace GameboyEmulator.Core.Video
             }
         }
 
-        private int TileIndex(int mapX, int mapY)
+        private int NormalizeTileIndex(int tileIndex)
         {
-            var tilemapOffset = _lcdc.BackgroundTilemap.Value ? 0x1C00 : 0x1800;
-            var tileIndex = (int)_vram[tilemapOffset + mapY * 32 + mapX];
-            if (_lcdc.BackgroundTileset.Value == false && tileIndex < 128)
+            if (!_lcdc.BackgroundTileset.Value && tileIndex < 128)
             {
                 tileIndex += 256;
             }
             return tileIndex;
         }
 
-        private void RenderScanline(int i)
+        private int TileIndexFromMapPosition(int mapX, int mapY)
         {
-            if (i >= 144) Console.WriteLine($"[debug] Scanline {i}");
+            var tilemapOffset = _lcdc.BackgroundTilemap.Value ? 0x1C00 : 0x1800;
+            var tileIndex = (int)_vram[tilemapOffset + mapY * 32 + mapX];
+            return NormalizeTileIndex(tileIndex);
+        }
 
-            var shades = new[]
+        private static Pixel[] MonochromeShades = new[]
             {
                 new Pixel(255, 255, 255),
                 new Pixel(192, 192, 192),
                 new Pixel(96, 96, 96),
                 new Pixel(0, 0, 0),
             };
+
+        private Pixel MapShadeThroughPalette(int shade, byte palette) => MonochromeShades[((0b11 << (2 * shade)) & palette) >> (2 * shade)];
+
+        private void RenderScanline(int i)
+        {
+            if (i >= 144) Console.WriteLine($"[debug] Scanline {i}");
+
+            RenderBackgroundForScanline(i);
+
+            // TODO add condition based on register switch
+            RenderSpritesForScanline(i);
+        }
+
+        private void RenderBackgroundForScanline(int i)
+        {
             // Note: scanline and scroll values are pixel based, not tile based
             var globalRow = (i + _scy.Value) % 256;
 
             var mapY = globalRow >> 3; // static for scanline!
             var mapX = _scx.Value >> 3; // TODO wrapping
-            var tileIndex = TileIndex(mapX, mapY);
+            var tileIndex = TileIndexFromMapPosition(mapX, mapY);
             var tileY = globalRow & 0b111; // static for scanline!
             var tileX = _scx.Value & 0b111;
-            
+
             for (var x = 0; x < 160; x++)
             {
                 var lower = _vram[tileIndex * 16 + tileY * 2];
                 var upper = _vram[tileIndex * 16 + tileY * 2 + 1];
-                    
-                var shade = (upper.GetBit(7-tileX) ? 2 : 0) + (lower.GetBit(7-tileX) ? 1 : 0);
+
+                var shade = (upper.GetBit(7 - tileX) ? 2 : 0) + (lower.GetBit(7 - tileX) ? 1 : 0);
 
                 // map tile shade through BG palette
-                _framebuffer[x, i] = shades[((0b11 << (2*shade)) & _bgp.Value) >> (2*shade)];
+                _framebuffer[x, i] = MapShadeThroughPalette(shade, _bgp.Value);
 
                 tileX++;
 
@@ -216,7 +238,52 @@ namespace GameboyEmulator.Core.Video
                 {
                     tileX = 0;
                     mapX++;
-                    tileIndex = TileIndex(mapX, mapY);
+                    tileIndex = TileIndexFromMapPosition(mapX, mapY);
+                }
+            }
+        }
+
+        // TODO caching mechanism to make this faster?
+        // TODO "Up to 10 objects can be displayed on the same Y line."
+        private void RenderSpritesForScanline(int i)
+        {
+            const int SPRITE_SIZE = 4;
+
+            var globalRow = (i + _scy.Value) % 256;
+
+            for (int spriteIdx = 0; spriteIdx < 40; spriteIdx++)
+            {
+                var spriteScreenY = _oam[SPRITE_SIZE * spriteIdx] - 16; // stored value is screen coordinate + 16
+                var spriteActiveY = i - spriteScreenY;
+                if (spriteActiveY < 0 || spriteActiveY >= 8)
+                {
+                    continue; // Sprite invisible
+                }
+
+                var spriteScreenX = _oam[SPRITE_SIZE * spriteIdx + 1] - 8; // stored value is screen coordinate + 8
+                if (spriteScreenX < 0 || spriteScreenX >= 160)
+                {
+                    continue; // Sprite invisible
+                }
+
+                Console.WriteLine($"Drawing sprite {spriteIdx}...");
+
+                var tileIndex = _oam[SPRITE_SIZE * spriteIdx + 2];
+                var attributes = _oam[SPRITE_SIZE * spriteIdx + 3]; // DMG: lower 4 bits do nothing; CGB: bank/palette selection
+                var palette = attributes.GetBit(4) ? _obp1 : _obp0;
+                // ignore attributes for now...
+
+                for (int pixelCount = 0, writeX = spriteScreenX; writeX < 160 && pixelCount < 8; writeX++, pixelCount++)
+                {
+                    // TODO Draw differently based on attributes/background!
+
+                    var lower = _vram[tileIndex * 16 + spriteActiveY * 2];
+                    var upper = _vram[tileIndex * 16 + spriteActiveY * 2 + 1];
+
+                    var shade = (upper.GetBit(7 - pixelCount) ? 2 : 0) + (lower.GetBit(7 - pixelCount) ? 1 : 0);
+
+                    // map tile shade through OBJ palette
+                    _framebuffer[writeX, i] = MapShadeThroughPalette(shade, palette.Value);
                 }
             }
         }
@@ -225,7 +292,7 @@ namespace GameboyEmulator.Core.Video
 
         private void OnCompletedFrame()
         {
-            NewFrame?.Invoke(this, new FrameEventArgs {Frame = _framebuffer});
+            NewFrame?.Invoke(this, new FrameEventArgs { Frame = _framebuffer });
         }
     }
 
