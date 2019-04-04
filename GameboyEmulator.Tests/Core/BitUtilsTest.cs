@@ -1,5 +1,4 @@
-﻿using GameboyEmulator.Core;
-using GameboyEmulator.Core.Utils;
+﻿using GameboyEmulator.Core.Utils;
 using NUnit.Framework;
 
 namespace GameboyEmulator.Tests.Core

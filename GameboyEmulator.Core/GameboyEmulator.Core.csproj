@@ -60,6 +60,7 @@
     <Compile Include="Memory\AddressableRegisterField.cs" />
     <Compile Include="Memory\BoolPointer.cs" />
     <Compile Include="Memory\MemoryPointer.cs" />
+    <Compile Include="Memory\OamDmaController.cs" />
     <Compile Include="Processor\Cpu.cs" />
     <Compile Include="Debugger\Disassembler.cs" />
     <Compile Include="Cartridge\ICartridge.cs" />

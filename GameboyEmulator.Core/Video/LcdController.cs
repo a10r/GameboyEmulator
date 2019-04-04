@@ -247,29 +247,27 @@ namespace GameboyEmulator.Core.Video
         // TODO "Up to 10 objects can be displayed on the same Y line."
         private void RenderSpritesForScanline(int i)
         {
-            const int SPRITE_SIZE = 4;
+            const int SPRITE_ENTRY_SIZE = 4;
 
             var globalRow = (i + _scy.Value) % 256;
 
             for (int spriteIdx = 0; spriteIdx < 40; spriteIdx++)
             {
-                var spriteScreenY = _oam[SPRITE_SIZE * spriteIdx] - 16; // stored value is screen coordinate + 16
+                var spriteScreenY = _oam[SPRITE_ENTRY_SIZE * spriteIdx] - 16; // stored value is screen coordinate + 16
                 var spriteActiveY = i - spriteScreenY;
                 if (spriteActiveY < 0 || spriteActiveY >= 8)
                 {
                     continue; // Sprite invisible
                 }
 
-                var spriteScreenX = _oam[SPRITE_SIZE * spriteIdx + 1] - 8; // stored value is screen coordinate + 8
+                var spriteScreenX = _oam[SPRITE_ENTRY_SIZE * spriteIdx + 1] - 8; // stored value is screen coordinate + 8
                 if (spriteScreenX < 0 || spriteScreenX >= 160)
                 {
                     continue; // Sprite invisible
                 }
 
-                Console.WriteLine($"Drawing sprite {spriteIdx}...");
-
-                var tileIndex = _oam[SPRITE_SIZE * spriteIdx + 2];
-                var attributes = _oam[SPRITE_SIZE * spriteIdx + 3]; // DMG: lower 4 bits do nothing; CGB: bank/palette selection
+                var tileIndex = _oam[SPRITE_ENTRY_SIZE * spriteIdx + 2];
+                var attributes = _oam[SPRITE_ENTRY_SIZE * spriteIdx + 3]; // DMG: lower 4 bits do nothing; CGB: bank/palette selection
                 var palette = attributes.GetBit(4) ? _obp1 : _obp0;
                 // ignore attributes for now...
 

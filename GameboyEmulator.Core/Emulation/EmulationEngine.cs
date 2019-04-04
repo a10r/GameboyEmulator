@@ -82,8 +82,8 @@ namespace GameboyEmulator.Core.Emulation
             var memoryMap = new TopLevelMemoryMap(
                 new ShadowedMemoryBlock(
                     MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/DMG_ROM.bin"),
-                    //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/Tetris.gb"),
-                    MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/ttt.gb"),
+                    MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/Tetris.gb"),
+                    //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/ttt.gb"),
                     //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/DrMario.gb"),
                     //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/gb-test-roms/cpu_instrs/cpu_instrs.gb"),
                     //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/gb-test-roms/cpu_instrs/individual/02-interrupts.gb"),
@@ -94,6 +94,8 @@ namespace GameboyEmulator.Core.Emulation
                 new MemoryBlock(8192), // internal ram
                 oam,
                 io);
+
+            io.Add(0x46, new OamDmaController(memoryMap));
 
             State = new MachineState(new RegisterField(), memoryMap);
             _loggingState = new MachineState(State.Registers,

@@ -15,6 +15,8 @@ namespace GameboyEmulator.Tests.Util
         public IStack Stack { get; set; }
 
         public bool InterruptMasterEnable { get; set; }
+        public bool Halted { get; set; }
+        public bool Stopped { get; set; }
 
         public CpuTestMachine()
         {
