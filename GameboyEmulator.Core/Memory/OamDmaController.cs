@@ -7,7 +7,7 @@ namespace GameboyEmulator.Core.Memory
     {
         public byte Value
         {
-            get => 0x42;
+            get => 0x42; // Doesn't matter.
             set => TransferData(value);
         }
 

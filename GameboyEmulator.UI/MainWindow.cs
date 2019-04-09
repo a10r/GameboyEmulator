@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Threading.Tasks;
 using Eto.Drawing;
 using Eto.Forms;
@@ -8,6 +7,7 @@ using GameboyEmulator.UI.Util;
 
 namespace GameboyEmulator.UI
 {
+    [Obsolete("Use OpenGLEmulationWindow instead.")]
     public class MainWindow : Form
     {
         public MainWindow()
@@ -19,8 +19,6 @@ namespace GameboyEmulator.UI
             var debugViewModel = new DebuggerViewModel(emulator.State, emulator);
             var debugWindow = new DebugWindow(debugViewModel);
             debugWindow.Show();
-
-            var frameCount = 0;
 
             // Very basic key input handling
             KeyDown += (s, e) =>
@@ -53,6 +51,7 @@ namespace GameboyEmulator.UI
                 }
             };
 
+            var frameCount = 0;
             Task.Run(async () =>
             {
                 long last = emulator.ElapsedCycles;

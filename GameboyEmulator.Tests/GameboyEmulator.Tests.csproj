@@ -71,6 +71,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Core\BitmapTest.cs" />
     <Compile Include="Core\BitUtilsTest.cs" />
     <Compile Include="Core\InstructionsTest.cs" />
     <Compile Include="Core\PairedRegisterTest.cs" />

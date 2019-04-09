@@ -101,9 +101,9 @@ namespace GameboyEmulator.Core.Memory
             }
         }
 
-        public TopLevelMemoryMap(IMemoryBlock cartridgeRom, 
+        public TopLevelMemoryMap(IMemoryBlock cartridgeRom,
             IMemoryBlock cartridgeRam,
-            IMemoryBlock vram, 
+            IMemoryBlock vram,
             IMemoryBlock internalRam,
             IMemoryBlock oam,
             IMemoryBlock ioPorts)

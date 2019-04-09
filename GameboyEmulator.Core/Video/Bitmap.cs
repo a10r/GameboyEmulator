@@ -1,11 +1,19 @@
-﻿using System.IO;
+﻿using System;
+using System.Runtime.InteropServices;
 
 namespace GameboyEmulator.Core.Video
 {
+    // TODO maybe this would be faster if it was aligned?
+    [StructLayout(LayoutKind.Explicit, Pack = 1, Size = 3)]
     public struct Pixel
     {
+        [FieldOffset(0)]
         public byte R;
+
+        [FieldOffset(1)]
         public byte G;
+
+        [FieldOffset(2)]
         public byte B;
 
         public Pixel(byte r, byte g, byte b)
@@ -14,32 +22,94 @@ namespace GameboyEmulator.Core.Video
             G = g;
             B = b;
         }
-    }
 
+        public Pixel(byte grayScale)
+            : this(grayScale, grayScale, grayScale)
+        {
+        }
+    }
+    
     public class Bitmap
     {
+        // Memory layout: 1st dimension = rows; 2nd dimension = pixels within row; so essentially: height before width.
+        // Origin is the top left.
         private Pixel[,] _data;
+
         public int Width { get; }
         public int Height { get; }
 
-        public ref Pixel this[int x, int y] => ref _data[x, y];
+        // Dimensions when accessing pixels are flipped for convenience.
+        public ref Pixel this[int x, int y] => ref _data[y, x];
 
         public Bitmap(int width, int height)
         {
-            _data = new Pixel[width, height];
+            _data = new Pixel[height, width];
             Width = width;
             Height = height;
         }
 
-        public void Save(Stream targetStream)
+        public void Populate(Func<int, int, Pixel> populator)
         {
-            foreach (var pixel in _data)
+            for (var y = 0; y < Height; y++)
             {
-                targetStream.WriteByte(pixel.R);
-                targetStream.WriteByte(pixel.G);
-                targetStream.WriteByte(pixel.B);
+                for (var x = 0; x < Width; x++)
+                {
+                    this[x, y] = populator(x, y);
+                }
             }
-            targetStream.Flush();
+        }
+
+        public PinnedBitmapData Pinned(BitmapOrientation orientation = BitmapOrientation.Normal)
+        {
+            var data = (Pixel[,])_data.Clone();
+
+            // TODO remove this hack once the OpenGL display is more sophisticated that DrawPixels
+            if (orientation == BitmapOrientation.FlipY)
+            {
+                for (var y = 0; y < Height; y++)
+                {
+                    for (var x = 0; x < Width; x++)
+                    {
+                        data[y, x] = _data[Height - y - 1, x];
+                    }
+                }
+            }
+
+            return new PinnedBitmapData(data);
+        }
+
+        public Bitmap Clone()
+        {
+            return (Bitmap)MemberwiseClone();
+        }
+    }
+
+    public enum BitmapOrientation
+    {
+        Normal,
+        FlipY
+    }
+
+    public class PinnedBitmapData : IDisposable
+    {
+        private GCHandle _handle;
+
+        internal PinnedBitmapData(Pixel[,] pixelData)
+        {
+            _handle = GCHandle.Alloc(pixelData, GCHandleType.Pinned);
+        }
+
+        public IntPtr Pointer => _handle.AddrOfPinnedObject();
+
+        ~PinnedBitmapData()
+        {
+            Dispose();
+        }
+
+        public void Dispose()
+        {
+            _handle.Free();
+            GC.SuppressFinalize(this);
         }
     }
 
