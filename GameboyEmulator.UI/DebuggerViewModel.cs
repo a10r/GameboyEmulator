@@ -25,8 +25,6 @@ namespace GameboyEmulator.UI
             State = state;
             _emulationControl = emulationControl;
             Refresh();
-
-            
         }
 
         public bool EmulationIsRunning

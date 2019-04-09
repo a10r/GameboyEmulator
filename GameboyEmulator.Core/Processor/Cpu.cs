@@ -5,8 +5,12 @@ using GameboyEmulator.Core.Utils;
 
 namespace GameboyEmulator.Core.Processor
 {
+    // TODO this is not super nice, maybe refactor the CPU interpreter to use a microcode-like design.
     public static class Cpu
     {
+        /// <summary>
+        ///     Executes the next instruction and modifies the passed machine state accordingly.
+        /// </summary>
         /// <param name="m">Machine state before execution.</param>
         /// <returns>Elapsed clock cycles.</returns>
         public static int ExecuteNextInstruction(IMachineState m)

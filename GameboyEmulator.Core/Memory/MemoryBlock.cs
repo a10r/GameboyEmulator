@@ -22,7 +22,7 @@ namespace GameboyEmulator.Core.Memory
         public MemoryBlock(byte[] initial) : this(initial.Length, initial)
         { }
 
-        public int Size { get; private set; }
+        public int Size { get; }
 
         public byte this[int address]
         {
