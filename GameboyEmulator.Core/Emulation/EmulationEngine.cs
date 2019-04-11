@@ -9,6 +9,7 @@ using GameboyEmulator.Core.Memory;
 using GameboyEmulator.Core.Processor;
 using GameboyEmulator.Core.Utils;
 using GameboyEmulator.Core.Video;
+using GameboyEmulator.Core.Cartridge;
 
 namespace GameboyEmulator.Core.Emulation
 {
@@ -18,7 +19,7 @@ namespace GameboyEmulator.Core.Emulation
         private readonly TextWriter _logger;
         private readonly IMachineState _loggingState;
 
-        public IButtonState Buttons { get; private set; }
+        public IButtonState Buttons { get; }
 
         public EmulationEngine()
         {
@@ -78,18 +79,20 @@ namespace GameboyEmulator.Core.Emulation
 
             io.Add(0x0F, @if);
             io.Add(0xFF, ie);
+            
+            //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/ttt.gb"),
+            //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/DrMario.gb"),
+            //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/gb-test-roms/cpu_instrs/cpu_instrs.gb"),
+            //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/gb-test-roms/cpu_instrs/individual/02-interrupts.gb"),
+            var cartridge = CartridgeLoader.FromFile("C:/Users/Andreas/Dropbox/DMG/Kwirk.gb");
 
             var memoryMap = new TopLevelMemoryMap(
                 new ShadowedMemoryBlock(
                     MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/DMG_ROM.bin"),
-                    MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/Tetris.gb"),
-                    //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/ttt.gb"),
-                    //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/DrMario.gb"),
-                    //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/gb-test-roms/cpu_instrs/cpu_instrs.gb"),
-                    //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/gb-test-roms/cpu_instrs/individual/02-interrupts.gb"),
+                    cartridge.ROM,
                     new BoolPointer(bootromEnable, 0)
                     ),
-                new MemoryBlock(8192), // cartridge ram TODO cartridge types!
+                cartridge.RAM,
                 vram,
                 new MemoryBlock(8192), // internal ram
                 oam,

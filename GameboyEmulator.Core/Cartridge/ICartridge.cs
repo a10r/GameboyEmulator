@@ -4,11 +4,7 @@ namespace GameboyEmulator.Core.Cartridge
 {
     public interface ICartridge
     {
-        // TODO: MBC type, ROM name?, battery
-        int RomBankCount { get; }
-        int RamBankCount { get; }
-
-        IMemoryBlock Ram { get; }
-        IMemoryBlock Rom { get; }
+        IMemoryBlock ROM { get; }
+        IMemoryBlock RAM { get; }
     }
 }
