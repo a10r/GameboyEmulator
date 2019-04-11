@@ -34,8 +34,11 @@ namespace GameboyEmulator.Core.Emulation
             {
                 io.Add(i, new Register<byte>());
             }
+            
+            var @if = new Register<byte>();
+            var ie = new Register<byte>();
 
-            var p1 = new ButtonInputRegister();
+            var p1 = new ButtonInputRegister(new InterruptTrigger(new BoolPointer(@if, 4)));
             Buttons = p1;
 
             var lcdc = new LcdControlRegister();
@@ -52,9 +55,6 @@ namespace GameboyEmulator.Core.Emulation
             var bgp = new Register<byte>();
             var obp0 = new Register<byte>();
             var obp1 = new Register<byte>();
-
-            var @if = new Register<byte>();
-            var ie = new Register<byte>();
 
             var bootromEnable = new Register<byte>();
 
@@ -84,7 +84,7 @@ namespace GameboyEmulator.Core.Emulation
             //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/DrMario.gb"),
             //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/gb-test-roms/cpu_instrs/cpu_instrs.gb"),
             //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/gb-test-roms/cpu_instrs/individual/02-interrupts.gb"),
-            var cartridge = CartridgeLoader.FromFile("C:/Users/Andreas/Dropbox/DMG/Kwirk.gb");
+            var cartridge = CartridgeLoader.FromFile("C:/Users/Andreas/Dropbox/DMG/SuperMarioLand.gb");
 
             var memoryMap = new TopLevelMemoryMap(
                 new ShadowedMemoryBlock(
@@ -215,6 +215,8 @@ namespace GameboyEmulator.Core.Emulation
                     State.Registers.PC.Value = 0x0060;
                     State.Memory[0xFF0F] = State.Memory[0xFF0F].SetBit(4, false);
                 }
+
+                State.Halted = false;
             }
         }
 

@@ -4,10 +4,12 @@ This is a Nintendo Gameboy emulator written in C#. It has a simple disassembler/
 
 ### Status
 
-Passes blargg's CPU tests, has graphics output and plays a few simple games like Tetris.
+Passes blargg's CPU instruction tests, has graphics output and already plays a few simple games like Tetris.
+
+### Major TODOs
 
 - [ ] Graphics: Advanced sprite attributes
 - [ ] Graphics: Hardware windows
 - [ ] Hardware timers
 - [ ] Sound
-- [ ] Bank-switching cartridge support
+- [x] Bank-switching cartridge support

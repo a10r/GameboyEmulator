@@ -1,14 +1,16 @@
 ﻿using GameboyEmulator.Core.Debugger;
 using GameboyEmulator.Core.Memory;
+using GameboyEmulator.Core.Processor;
 using GameboyEmulator.Core.Utils;
 
 namespace GameboyEmulator.Core.IO
 {
-    // TODO button press interrupt
     // NOTE switching between key groups techically takes a few cycles
-    // NOTE 0: keypress; 1: no keypress
+    // NOTE 0: keypress; 1: no keypress (opposite of IButtonState interface)
     public class ButtonInputRegister : IRegister<byte>, IButtonState
     {
+        private readonly IInterruptTrigger _buttonPressInterrupt;
+
         // True -> DPad; False -> A/B/Start/Select
         private bool _enableDPad;
 
@@ -42,19 +44,33 @@ namespace GameboyEmulator.Core.IO
             }
         }
 
-        public bool Right   { get => !_dpad.GetBit(0); set => _dpad.SetBitByRef(0, !value); }
-        public bool Left    { get => !_dpad.GetBit(1); set => _dpad.SetBitByRef(1, !value); }
-        public bool Up      { get => !_dpad.GetBit(2); set => _dpad.SetBitByRef(2, !value); }
-        public bool Down    { get => !_dpad.GetBit(3); set => _dpad.SetBitByRef(3, !value); }
+        public bool Right   { get => !_dpad.GetBit(0); set { _dpad.SetBitByRef(0, !value); ButtonStateChanged(); } }
+        public bool Left    { get => !_dpad.GetBit(1); set { _dpad.SetBitByRef(1, !value); ButtonStateChanged(); } }
+        public bool Up      { get => !_dpad.GetBit(2); set { _dpad.SetBitByRef(2, !value); ButtonStateChanged(); } }
+        public bool Down    { get => !_dpad.GetBit(3); set { _dpad.SetBitByRef(3, !value); ButtonStateChanged(); } }
         
-        public bool A       { get => !_other.GetBit(0); set => _other.SetBitByRef(0, !value); }
-        public bool B       { get => !_other.GetBit(1); set => _other.SetBitByRef(1, !value); }
-        public bool Select  { get => !_other.GetBit(2); set => _other.SetBitByRef(2, !value); }
-        public bool Start   { get => !_other.GetBit(3); set => _other.SetBitByRef(3, !value); }
+        public bool A       { get => !_other.GetBit(0); set { _other.SetBitByRef(0, !value); ButtonStateChanged(); } }
+        public bool B       { get => !_other.GetBit(1); set { _other.SetBitByRef(1, !value); ButtonStateChanged(); } }
+        public bool Select  { get => !_other.GetBit(2); set { _other.SetBitByRef(2, !value); ButtonStateChanged(); } }
+        public bool Start   { get => !_other.GetBit(3); set { _other.SetBitByRef(3, !value); ButtonStateChanged(); } }
+
+        private void ButtonStateChanged()
+        {
+            _buttonPressInterrupt.Trigger();
+        }
+
+        public ButtonInputRegister(IInterruptTrigger buttonPressInterrupt)
+        {
+            _buttonPressInterrupt = buttonPressInterrupt;
+        }
 
         public override string ToString() => $"Switch: {_enableDPad}; DPad: {_dpad.ToBinaryString()}; Other: {_other.ToBinaryString()}";
     }
 
+    /// <summary>
+    /// Represents the "pressed" state of buttons. True means that the 
+    /// button is pressed, false means released.
+    /// </summary>
     public interface IButtonState
     {
         bool Right { get; set; }

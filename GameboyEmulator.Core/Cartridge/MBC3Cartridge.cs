@@ -73,7 +73,7 @@ namespace GameboyEmulator.Core.Cartridge
             {
                 // Write values 0-3 are for selecting RAM bank.
                 // Higher values are for selecting RTC.
-                if (!(value <= 3) || !(value >= 8 && value <= 12))
+                if (!(value <= 3) && !(value >= 8 && value <= 12))
                 {
                     throw new ArgumentException("Invalid MBC3 ram/rtc selection");
                 }

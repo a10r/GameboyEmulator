@@ -17,8 +17,8 @@ namespace GameboyEmulator.Core.Emulation
             set
             {
                 // TODO debug outputs --> remove later.
-                if (value) System.Console.WriteLine("CPU halted.");
-                else System.Console.WriteLine("CPU un-halted.");
+                //if (value) System.Console.WriteLine("CPU halted.");
+                //else System.Console.WriteLine("CPU un-halted.");
                 _halted = value;
             }
         }
