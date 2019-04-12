@@ -216,6 +216,10 @@ namespace GameboyEmulator.Core.Video
             RenderSpritesForScanline(i);
         }
 
+        // Stores raw shades from the current scanline.
+        // This is needed for ensuring corrent bg/sprite priority.
+        private int[] _rawScanline = new int[160];
+
         private void RenderBackgroundForScanline(int i)
         {
             // Note: scanline and scroll values are pixel based, not tile based
@@ -236,6 +240,7 @@ namespace GameboyEmulator.Core.Video
 
                 // map tile shade through BG palette
                 _framebuffer[x, i] = MapShadeThroughPalette(shade, _bgp.Value);
+                _rawScanline[x] = shade;
 
                 tileX++;
 
@@ -273,17 +278,54 @@ namespace GameboyEmulator.Core.Video
 
                 var tileIndex = _oam[SPRITE_ENTRY_SIZE * spriteIdx + 2];
                 var attributes = _oam[SPRITE_ENTRY_SIZE * spriteIdx + 3]; // DMG: lower 4 bits do nothing; CGB: bank/palette selection
-                var palette = attributes.GetBit(4) ? _obp1 : _obp0;
-                // ignore attributes for now...
+                
+                var paletteAttr = attributes.GetBit(4); // unused on CGB
+                var xFlip = attributes.GetBit(5); // 1 = flipped horizontally
+                var yFlip = attributes.GetBit(6); // 1 = flipped vertically
+                var belowBg = attributes.GetBit(7); // 1 = sprite is below BG (except if BG shade is 0)
 
-                for (int pixelCount = 0, writeX = spriteScreenX; writeX < 160 && pixelCount < 8; writeX++, pixelCount++)
+                var palette = paletteAttr ? _obp1 : _obp0;
+
+                if (yFlip)
                 {
+                    spriteActiveY = 7 - spriteActiveY;
+                }
+
+                for (int pixelCount = 0; pixelCount < 8; pixelCount++)
+                {
+                    int writeX;
+                    if (xFlip)
+                    {
+                        writeX = spriteScreenX + 7 - pixelCount;
+                    }
+                    else
+                    {
+                        writeX = spriteScreenX + pixelCount;
+                    }
+                    
+                    if (writeX < 0 || writeX >= 160)
+                    {
+                        continue;
+                    }
+
                     // TODO Draw differently based on attributes/background!
 
                     var lower = _vram[tileIndex * 16 + spriteActiveY * 2];
                     var upper = _vram[tileIndex * 16 + spriteActiveY * 2 + 1];
 
                     var shade = (upper.GetBit(7 - pixelCount) ? 2 : 0) + (lower.GetBit(7 - pixelCount) ? 1 : 0);
+
+                    // Color 0 == transparent
+                    if (shade == 0)
+                    {
+                        continue;
+                    }
+
+                    // BG drawn over sprite
+                    if (_rawScanline[writeX] != 0 && belowBg)
+                    {
+                        continue;
+                    }
 
                     // map tile shade through OBJ palette
                     _framebuffer[writeX, i] = MapShadeThroughPalette(shade, palette.Value);

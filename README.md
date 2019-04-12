@@ -8,7 +8,7 @@ Passes blargg's CPU instruction tests, has graphics output and already plays a f
 
 ### Major TODOs
 
-- [ ] Graphics: Advanced sprite attributes
+- [x] Graphics: Sprite attributes
 - [ ] Graphics: Hardware windows
 - [ ] Hardware timers
 - [ ] Sound
