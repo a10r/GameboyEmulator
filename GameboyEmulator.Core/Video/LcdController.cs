@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Drawing;
 using GameboyEmulator.Core.Memory;
+using GameboyEmulator.Core.Processor;
 using GameboyEmulator.Core.Utils;
 
 namespace GameboyEmulator.Core.Video
@@ -31,7 +31,10 @@ namespace GameboyEmulator.Core.Video
         private readonly IRegister<byte> _obp1; // OBJ palette 1
         private readonly IMemoryBlock _vram;
         private readonly IMemoryBlock _oam;
-        private readonly IRegister<byte> _if; // TODO: only take one flag
+
+        private readonly IInterruptTrigger _vblankInterrupt;
+        private readonly IInterruptTrigger _lcdStatusInterrupt;
+
         private int _counter;
 
         private long _globalCounter;
@@ -50,7 +53,8 @@ namespace GameboyEmulator.Core.Video
             IMemoryBlock oam,
             IRegister<byte> obp0,
             IRegister<byte> obp1,
-            IRegister<byte> @if)
+            IInterruptTrigger vblankInterrupt,
+            IInterruptTrigger lcdStatusInterrupt)
         {
             Debug.Assert(vram.Size == 8192);
             Debug.Assert(oam.Size == 160);
@@ -67,7 +71,8 @@ namespace GameboyEmulator.Core.Video
             _oam = oam;
             _obp0 = obp0;
             _obp1 = obp1;
-            _if = @if;
+            _vblankInterrupt = vblankInterrupt;
+            _lcdStatusInterrupt = lcdStatusInterrupt;
         }
 
         // TODO: Make this more efficient. Currently one clock per call. 
@@ -125,7 +130,7 @@ namespace GameboyEmulator.Core.Video
 
             if (_ly.Value == _lyc.Value && _stat.ScanlineCoincidenceInterruptEnabled.Value)
             {
-                _if.SetBit(1, true);
+                _lcdStatusInterrupt.Trigger();
             }
 
             _stat.Mode = _currentMode; // TODO
@@ -141,7 +146,7 @@ namespace GameboyEmulator.Core.Video
             {
                 if (_stat.OamSearchInterruptEnabled.Value)
                 {
-                    _if.SetBit(1, true);
+                    _lcdStatusInterrupt.Trigger();
                 }
             }
             else if (newMode == LcdMode.DataTransfer)
@@ -154,7 +159,7 @@ namespace GameboyEmulator.Core.Video
 
                 if (_stat.HBlankInterruptEnabled.Value)
                 {
-                    _if.SetBit(1, true);
+                    _lcdStatusInterrupt.Trigger();
                 }
             }
             else if (newMode == LcdMode.VerticalBlank)
@@ -165,12 +170,12 @@ namespace GameboyEmulator.Core.Video
 
                 OnCompletedFrame();
 
-                _if.SetBit(0, true);
+                _vblankInterrupt.Trigger();
 
                 // TODO does vblank really have two interrupts?
                 if (_stat.VBlankInterruptEnabled.Value)
                 {
-                    _if.SetBit(0, true);
+                    _vblankInterrupt.Trigger();
                 }
             }
         }

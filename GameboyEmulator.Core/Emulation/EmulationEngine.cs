@@ -38,7 +38,11 @@ namespace GameboyEmulator.Core.Emulation
             var @if = new Register<byte>();
             var ie = new Register<byte>();
 
-            var p1 = new ButtonInputRegister(new InterruptTrigger(new BoolPointer(@if, 4)));
+            var vblankInterrupt = new InterruptTrigger(new BoolPointer(@if, 0));
+            var lcdStatusInterrupt = new InterruptTrigger(new BoolPointer(@if, 1));
+            var buttonPressInterrupt = new InterruptTrigger(new BoolPointer(@if, 4));
+
+            var p1 = new ButtonInputRegister(buttonPressInterrupt);
             Buttons = p1;
 
             var lcdc = new LcdControlRegister();
@@ -84,7 +88,7 @@ namespace GameboyEmulator.Core.Emulation
             //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/DrMario.gb"),
             //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/gb-test-roms/cpu_instrs/cpu_instrs.gb"),
             //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/gb-test-roms/cpu_instrs/individual/02-interrupts.gb"),
-            var cartridge = CartridgeLoader.FromFile("C:/Users/Andreas/Dropbox/DMG/SuperMarioLand.gb");
+            var cartridge = CartridgeLoader.FromFile("C:/Users/Andreas/Dropbox/DMG/PokemonRed.gb");
 
             var memoryMap = new TopLevelMemoryMap(
                 new ShadowedMemoryBlock(
@@ -104,7 +108,7 @@ namespace GameboyEmulator.Core.Emulation
             _loggingState = new MachineState(State.Registers,
                 new LoggingMemoryBlock(State.Memory, _logger));
             _lcdController = new LcdController(lcdc, stat, scx, scy, ly, lyc, bgp,
-                vram, oam, obp0, obp1, @if);
+                vram, oam, obp0, obp1, vblankInterrupt, lcdStatusInterrupt);
 
             //SkipBootrom();
 

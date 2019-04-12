@@ -37,7 +37,7 @@ namespace GameboyEmulator.Core.Cartridge
             _romData = romData;
             _ramData = new byte[32768];
             ROM = new LambdaMemoryBlock(32768, ReadRom, WriteRom);
-            RAM = new LambdaMemoryBlock(8196, ReadRam, WriteRam);
+            RAM = new LambdaMemoryBlock(8192, ReadRam, WriteRam);
         }
 
         private byte ReadRom(int address)
