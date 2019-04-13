@@ -269,11 +269,14 @@ namespace GameboyEmulator.Core.Video
 
             var globalRow = (i + _scy.Value) % 256;
 
+            // TODO test if flipping of 8x16 sprites works.
+            var spriteMaxHeight = _lcdc.LargeSpritesEnabled.Value ? 16 : 8;
+
             for (int spriteIdx = 0; spriteIdx < 40; spriteIdx++)
             {
                 var spriteScreenY = _oam[SPRITE_ENTRY_SIZE * spriteIdx] - 16; // stored value is screen coordinate + 16
                 var spriteActiveY = i - spriteScreenY;
-                if (spriteActiveY < 0 || spriteActiveY >= 8)
+                if (spriteActiveY < 0 || spriteActiveY >= spriteMaxHeight)
                 {
                     continue; // Sprite invisible
                 }
