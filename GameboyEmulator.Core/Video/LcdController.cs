@@ -234,7 +234,7 @@ namespace GameboyEmulator.Core.Video
             var globalRow = (i + _scy.Value) % 256;
 
             var mapY = globalRow >> 3; // static for scanline!
-            var mapX = _scx.Value >> 3; // TODO wrapping
+            var mapX = _scx.Value >> 3;
             var tileIndex = TileIndexFromMapPosition(mapX, mapY);
             var tileY = globalRow & 0b111; // static for scanline!
             var tileX = _scx.Value & 0b111;
@@ -255,7 +255,7 @@ namespace GameboyEmulator.Core.Video
                 if (tileX == 8)
                 {
                     tileX = 0;
-                    mapX++;
+                    mapX = (mapX + 1) % 32;
                     tileIndex = TileIndexFromMapPosition(mapX, mapY);
                 }
             }
