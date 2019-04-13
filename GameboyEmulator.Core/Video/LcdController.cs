@@ -22,13 +22,15 @@ namespace GameboyEmulator.Core.Video
         private readonly LcdStatusRegister _stat;
         private LcdMode _currentMode = LcdMode.OamSearch; // TODO incorporate this into stat register code
 
-        private readonly IRegister<byte> _scx;
-        private readonly IRegister<byte> _scy;
+        private readonly IRegister<byte> _scx; // scroll x
+        private readonly IRegister<byte> _scy; // scroll y
         private readonly IRegister<byte> _ly; // current scanline
-        private readonly IRegister<byte> _lyc;
+        private readonly IRegister<byte> _lyc; // scanline compare
         private readonly IRegister<byte> _bgp; // BG palette
         private readonly IRegister<byte> _obp0; // OBJ palette 0
         private readonly IRegister<byte> _obp1; // OBJ palette 1
+        private readonly IRegister<byte> _wy; // Window y position (0~143)
+        private readonly IRegister<byte> _wx; // Window x position minus 7 (7~166)
         private readonly IMemoryBlock _vram;
         private readonly IMemoryBlock _oam;
 
@@ -53,6 +55,8 @@ namespace GameboyEmulator.Core.Video
             IMemoryBlock oam,
             IRegister<byte> obp0,
             IRegister<byte> obp1,
+            IRegister<byte> wy,
+            IRegister<byte> wx,
             IInterruptTrigger vblankInterrupt,
             IInterruptTrigger lcdStatusInterrupt)
         {
@@ -73,6 +77,8 @@ namespace GameboyEmulator.Core.Video
             _obp1 = obp1;
             _vblankInterrupt = vblankInterrupt;
             _lcdStatusInterrupt = lcdStatusInterrupt;
+            _wy = wy;
+            _wx = wx;
         }
 
         // TODO: Make this more efficient. Currently one clock per call. 
@@ -189,9 +195,9 @@ namespace GameboyEmulator.Core.Video
             return tileIndex;
         }
 
-        private int TileIndexFromMapPosition(int mapX, int mapY)
+        private int TileIndexFromMapPosition(IRegister<bool> tilemapSelect, int mapX, int mapY)
         {
-            var tilemapOffset = _lcdc.BackgroundTilemap.Value ? 0x1C00 : 0x1800;
+            var tilemapOffset = tilemapSelect.Value ? 0x1C00 : 0x1800;
             var tileIndex = (int)_vram[tilemapOffset + mapY * 32 + mapX];
             return NormalizeTileIndex(tileIndex);
         }
@@ -217,15 +223,15 @@ namespace GameboyEmulator.Core.Video
             {
                 RenderBackgroundForScanline(i);
             }
+            
+            if (_lcdc.WindowEnabled.Value)
+            {
+                RenderWindowForScanline(i);
+            }
 
             if (_lcdc.SpritesEnabled.Value)
             {
                 RenderSpritesForScanline(i);
-            }
-
-            if (_lcdc.WindowEnabled.Value)
-            {
-                RenderWindowForScanline(i);
             }
         }
 
@@ -240,7 +246,7 @@ namespace GameboyEmulator.Core.Video
 
             var mapY = globalRow >> 3; // static for scanline!
             var mapX = _scx.Value >> 3;
-            var tileIndex = TileIndexFromMapPosition(mapX, mapY);
+            var tileIndex = TileIndexFromMapPosition(_lcdc.BackgroundTilemap, mapX, mapY);
             var tileY = globalRow & 0b111; // static for scanline!
             var tileX = _scx.Value & 0b111;
 
@@ -261,7 +267,7 @@ namespace GameboyEmulator.Core.Video
                 {
                     tileX = 0;
                     mapX = (mapX + 1) % 32;
-                    tileIndex = TileIndexFromMapPosition(mapX, mapY);
+                    tileIndex = TileIndexFromMapPosition(_lcdc.BackgroundTilemap, mapX, mapY);
                 }
             }
         }
@@ -322,6 +328,12 @@ namespace GameboyEmulator.Core.Video
                     {
                         continue;
                     }
+                    
+                    // Sprite drawn below BG
+                    if (_rawBackgroundLayer[writeX] != 0 && belowBg)
+                    {
+                        continue;
+                    }
 
                     var lower = _vram[tileIndex * 16 + spriteActiveY * 2];
                     var upper = _vram[tileIndex * 16 + spriteActiveY * 2 + 1];
@@ -334,12 +346,6 @@ namespace GameboyEmulator.Core.Video
                         continue;
                     }
 
-                    // BG drawn over sprite
-                    if (_rawBackgroundLayer[writeX] != 0 && belowBg)
-                    {
-                        continue;
-                    }
-
                     // map tile shade through OBJ palette
                     _framebuffer[writeX, i] = MapShadeThroughPalette(shade, palette.Value);
                 }
@@ -348,7 +354,41 @@ namespace GameboyEmulator.Core.Video
         
         private void RenderWindowForScanline(int i)
         {
-            throw new NotImplementedException();
+            if (i < _wy.Value)
+            {
+                return;
+            }
+
+            var windowLeft = _wx.Value - 7;
+            var mapY = (i - _wy.Value) >> 3; // static for scanline!
+            var mapX = 0;
+            var tileIndex = TileIndexFromMapPosition(_lcdc.WindowTilemap, mapX, mapY);
+            var tileY = (i - _wy.Value) & 0b111; // static for scanline!
+            var tileX = 0;
+
+            for (var x = windowLeft; x < 160; x++)
+            {
+                var lower = _vram[tileIndex * 16 + tileY * 2];
+                var upper = _vram[tileIndex * 16 + tileY * 2 + 1];
+
+                var shade = (upper.GetBit(7 - tileX) ? 2 : 0) + (lower.GetBit(7 - tileX) ? 1 : 0);
+
+                if (x >= 0)
+                {
+                    // map tile shade through BG palette
+                    _framebuffer[x, i] = MapShadeThroughPalette(shade, _bgp.Value);
+                    _rawBackgroundLayer[x] = shade;
+                }
+
+                tileX++;
+
+                if (tileX == 8)
+                {
+                    tileX = 0;
+                    mapX++;
+                    tileIndex = TileIndexFromMapPosition(_lcdc.WindowTilemap, mapX, mapY);
+                }
+            }
         }
 
         public event EventHandler<FrameEventArgs> NewFrame;

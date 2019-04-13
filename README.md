@@ -9,7 +9,7 @@ Passes blargg's CPU instruction tests, has graphics output and already plays a f
 ### Major TODOs
 
 - [x] Graphics: Sprite attributes
-- [ ] Graphics: Hardware windows
+- [x] Graphics: Hardware windows
 - [ ] Hardware timers
 - [ ] Sound
 - [x] Bank-switching cartridge support
