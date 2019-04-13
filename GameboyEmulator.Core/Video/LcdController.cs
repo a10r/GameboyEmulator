@@ -16,7 +16,7 @@ namespace GameboyEmulator.Core.Video
 
     public class LcdController : IFrameSource
     {
-        private readonly Bitmap _framebuffer;
+        private Bitmap _framebuffer;
 
         private readonly LcdControlRegister _lcdc;
         private readonly LcdStatusRegister _stat;
@@ -79,7 +79,7 @@ namespace GameboyEmulator.Core.Video
         // TODO: Timing is not accurate. (Depends on sprite count etc)
         public int Tick()
         {
-            if (!_lcdc.LcdEnable.Value) return 1;
+            if (!_lcdc.LcdEnabled.Value) return 1;
 
             _counter++;
 
@@ -196,6 +196,9 @@ namespace GameboyEmulator.Core.Video
             return NormalizeTileIndex(tileIndex);
         }
 
+        /// <summary>
+        /// 4 shades, from white to black.
+        /// </summary>
         private static Pixel[] MonochromeShades = new[]
             {
                 new Pixel(255, 255, 255),
@@ -210,14 +213,19 @@ namespace GameboyEmulator.Core.Video
         {
             if (i >= 144) Console.WriteLine($"[debug] Scanline {i}");
 
-            RenderBackgroundForScanline(i);
+            if (_lcdc.BackgroundEnabled.Value)
+            {
+                RenderBackgroundForScanline(i);
+            }
 
-            // TODO add condition based on register switch
-            RenderSpritesForScanline(i);
+            if (_lcdc.SpritesEnabled.Value)
+            {
+                RenderSpritesForScanline(i);
+            }
         }
 
         // Stores raw shades from the current scanline.
-        // This is needed for ensuring corrent bg/sprite priority.
+        // This is needed for ensuring correct bg/sprite priority.
         private int[] _rawScanline = new int[160];
 
         private void RenderBackgroundForScanline(int i)
@@ -308,8 +316,6 @@ namespace GameboyEmulator.Core.Video
                         continue;
                     }
 
-                    // TODO Draw differently based on attributes/background!
-
                     var lower = _vram[tileIndex * 16 + spriteActiveY * 2];
                     var upper = _vram[tileIndex * 16 + spriteActiveY * 2 + 1];
 
@@ -338,6 +344,9 @@ namespace GameboyEmulator.Core.Video
         private void OnCompletedFrame()
         {
             NewFrame?.Invoke(this, new FrameEventArgs { Frame = _framebuffer });
+
+            // New cleared framebuffer for next frame.
+            _framebuffer = new Bitmap(160, 144);
         }
     }
 

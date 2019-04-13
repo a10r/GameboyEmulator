@@ -2,32 +2,35 @@
 
 namespace GameboyEmulator.Core.Video
 {
+    // TODO maybe switch to IReadonlyRegister, or just use a bool getter?
     public class LcdControlRegister : IRegister<byte>
     {
         public byte Value { get; set; }
 
-        // TODO maybe switch to IReadonlyRegister?
-        public IRegister<bool> BackgroundEnable { get; private set; }
-        public IRegister<bool> SpriteEnable { get; private set; }
+        public IRegister<bool> BackgroundEnabled { get; }
+        public IRegister<bool> SpritesEnabled { get; }
 
-        // TODO: keep this as bool?
-        public IRegister<bool> SpriteMode { get; private set; }
-        public IRegister<bool> BackgroundTilemap { get; private set; }
-        public IRegister<bool> BackgroundTileset { get; private set; }
-        public IRegister<bool> WindowEnable { get; private set; }
-        public IRegister<bool> LcdEnable { get; private set; }
+        /// <summary>
+        /// If true, sprite size is 8x16. If false, it is 8x8.
+        /// </summary>
+        public IRegister<bool> LargeSpritesEnabled { get; }
+
+        public IRegister<bool> BackgroundTilemap { get; }
+        public IRegister<bool> BackgroundTileset { get; }
+        public IRegister<bool> WindowEnabled { get; }
+        public IRegister<bool> LcdEnabled { get; }
 
         // TODO: window code area selection flag
 
         public LcdControlRegister()
         {
-            BackgroundEnable = new BoolPointer(this, 0);
-            SpriteEnable = new BoolPointer(this, 1);
-            SpriteMode = new BoolPointer(this, 2);
+            BackgroundEnabled = new BoolPointer(this, 0);
+            SpritesEnabled = new BoolPointer(this, 1);
+            LargeSpritesEnabled = new BoolPointer(this, 2);
             BackgroundTilemap = new BoolPointer(this, 3);
             BackgroundTileset = new BoolPointer(this, 4);
-            WindowEnable = new BoolPointer(this, 5);
-            LcdEnable = new BoolPointer(this, 7);
+            WindowEnabled = new BoolPointer(this, 5);
+            LcdEnabled = new BoolPointer(this, 7);
         }
     }
 }
