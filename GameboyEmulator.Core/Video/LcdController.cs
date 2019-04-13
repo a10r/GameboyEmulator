@@ -222,11 +222,16 @@ namespace GameboyEmulator.Core.Video
             {
                 RenderSpritesForScanline(i);
             }
+
+            if (_lcdc.WindowEnabled.Value)
+            {
+                RenderWindowForScanline(i);
+            }
         }
 
-        // Stores raw shades from the current scanline.
+        // Stores raw shades of the BG layer for the current scanline.
         // This is needed for ensuring correct bg/sprite priority.
-        private int[] _rawScanline = new int[160];
+        private int[] _rawBackgroundLayer = new int[160];
 
         private void RenderBackgroundForScanline(int i)
         {
@@ -248,7 +253,7 @@ namespace GameboyEmulator.Core.Video
 
                 // map tile shade through BG palette
                 _framebuffer[x, i] = MapShadeThroughPalette(shade, _bgp.Value);
-                _rawScanline[x] = shade;
+                _rawBackgroundLayer[x] = shade;
 
                 tileX++;
 
@@ -268,8 +273,7 @@ namespace GameboyEmulator.Core.Video
             const int SPRITE_ENTRY_SIZE = 4;
 
             var globalRow = (i + _scy.Value) % 256;
-
-            // TODO test if flipping of 8x16 sprites works.
+            
             var spriteMaxHeight = _lcdc.LargeSpritesEnabled.Value ? 16 : 8;
 
             for (int spriteIdx = 0; spriteIdx < 40; spriteIdx++)
@@ -299,7 +303,7 @@ namespace GameboyEmulator.Core.Video
 
                 if (yFlip)
                 {
-                    spriteActiveY = 7 - spriteActiveY;
+                    spriteActiveY = (spriteMaxHeight - 1) - spriteActiveY;
                 }
 
                 for (int pixelCount = 0; pixelCount < 8; pixelCount++)
@@ -331,7 +335,7 @@ namespace GameboyEmulator.Core.Video
                     }
 
                     // BG drawn over sprite
-                    if (_rawScanline[writeX] != 0 && belowBg)
+                    if (_rawBackgroundLayer[writeX] != 0 && belowBg)
                     {
                         continue;
                     }
@@ -340,6 +344,11 @@ namespace GameboyEmulator.Core.Video
                     _framebuffer[writeX, i] = MapShadeThroughPalette(shade, palette.Value);
                 }
             }
+        }
+        
+        private void RenderWindowForScanline(int i)
+        {
+            throw new NotImplementedException();
         }
 
         public event EventHandler<FrameEventArgs> NewFrame;
