@@ -1,7 +1,6 @@
-﻿using GameboyEmulator.Core.Memory;
-using System;
+﻿using System;
 
-namespace GameboyEmulator.Core.Debugger
+namespace GameboyEmulator.Core.Memory
 {
     public class LambdaRegister<T> : IRegister<T>
     {

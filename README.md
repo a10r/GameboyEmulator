@@ -10,6 +10,6 @@ Passes blargg's CPU instruction tests, has graphics output and already plays a f
 
 - [x] Graphics: Sprite attributes
 - [x] Graphics: Hardware windows
-- [ ] Hardware timers
+- [x] Hardware timers
 - [ ] Sound
 - [x] Bank-switching cartridge support

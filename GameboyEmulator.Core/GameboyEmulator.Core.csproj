@@ -57,7 +57,7 @@
     <Compile Include="Cartridge\MBC3Cartridge.cs" />
     <Compile Include="Cartridge\MBC5Cartridge.cs" />
     <Compile Include="Cartridge\RomOnlyCartridge.cs" />
-    <Compile Include="Debugger\LambdaRegister.cs" />
+    <Compile Include="Memory\LambdaRegister.cs" />
     <Compile Include="Debugger\LcdDebugUtils.cs" />
     <Compile Include="Debugger\LoggingRegister.cs" />
     <Compile Include="Emulation\MachineState.cs" />
@@ -81,6 +81,7 @@
     <Compile Include="Debugger\DebugUtils.cs" />
     <Compile Include="Processor\InterruptTrigger.cs" />
     <Compile Include="Processor\RegisterName.cs" />
+    <Compile Include="Timer\TimerController.cs" />
     <Compile Include="Utils\BitUtils.cs" />
     <Compile Include="Memory\FlagRegister.cs" />
     <Compile Include="Memory\IFlags.cs" />

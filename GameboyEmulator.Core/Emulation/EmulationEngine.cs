@@ -10,12 +10,14 @@ using GameboyEmulator.Core.Processor;
 using GameboyEmulator.Core.Utils;
 using GameboyEmulator.Core.Video;
 using GameboyEmulator.Core.Cartridge;
+using GameboyEmulator.Core.Timer;
 
 namespace GameboyEmulator.Core.Emulation
 {
     public class EmulationEngine : IEmulationControl
     {
         private readonly LcdController _lcdController;
+        private readonly TimerController _timerController;
         private readonly TextWriter _logger;
         private readonly IMachineState _loggingState;
 
@@ -24,7 +26,7 @@ namespace GameboyEmulator.Core.Emulation
         public EmulationEngine()
         {
             _logger = Console.Out;
-
+            
             var vram = new MemoryBlock(8192);
             var oam = new MemoryBlock(160);
             var io = new AddressableRegisterField(256);
@@ -40,7 +42,10 @@ namespace GameboyEmulator.Core.Emulation
 
             var vblankInterrupt = new InterruptTrigger(new BoolPointer(@if, 0));
             var lcdStatusInterrupt = new InterruptTrigger(new BoolPointer(@if, 1));
+            var timerInterrupt = new InterruptTrigger(new BoolPointer(@if, 2));
             var buttonPressInterrupt = new InterruptTrigger(new BoolPointer(@if, 4));
+            
+            _timerController = new TimerController(timerInterrupt);
 
             var p1 = new ButtonInputRegister(buttonPressInterrupt);
             Buttons = p1;
@@ -59,6 +64,9 @@ namespace GameboyEmulator.Core.Emulation
             var bgp = new Register<byte>();
             var obp0 = new Register<byte>();
             var obp1 = new Register<byte>();
+            
+            var wy = new Register<byte>();
+            var wx = new Register<byte>();
 
             var bootromEnable = new Register<byte>();
 
@@ -70,6 +78,11 @@ namespace GameboyEmulator.Core.Emulation
             io.Add(0x01, new LambdaRegister<byte>(b => lastSerialByte = b)); // SB serial transfer
             io.Add(0x02, new LambdaRegister<byte>(b => { if (b == 0x81) serialLog.Write(Convert.ToChar(lastSerialByte)); serialLog.Flush(); })); // SC serial clock
 
+            io.Add(0x04, _timerController.DIV);
+            io.Add(0x05, _timerController.TIMA);
+            io.Add(0x06, _timerController.TMA);
+            io.Add(0x07, _timerController.TAC);
+
             io.Add(0x40, lcdc);
             io.Add(0x41, stat);
             io.Add(0x42, scy);
@@ -79,6 +92,8 @@ namespace GameboyEmulator.Core.Emulation
             io.Add(0x47, bgp);
             io.Add(0x48, obp0);
             io.Add(0x49, obp1);
+            io.Add(0x4A, wy);
+            io.Add(0x4B, wx);
             io.Add(0x50, bootromEnable);
 
             io.Add(0x0F, @if);
@@ -88,7 +103,7 @@ namespace GameboyEmulator.Core.Emulation
             //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/DrMario.gb"),
             //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/gb-test-roms/cpu_instrs/cpu_instrs.gb"),
             //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/gb-test-roms/cpu_instrs/individual/02-interrupts.gb"),
-            var cartridge = CartridgeLoader.FromFile("C:/Users/Andreas/Dropbox/DMG/PokemonRed.gb");
+            var cartridge = CartridgeLoader.FromFile("C:/Users/Andreas/Dropbox/DMG/Tetris.gb");
 
             var memoryMap = new TopLevelMemoryMap(
                 new ShadowedMemoryBlock(
@@ -108,7 +123,7 @@ namespace GameboyEmulator.Core.Emulation
             _loggingState = new MachineState(State.Registers,
                 new LoggingMemoryBlock(State.Memory, _logger));
             _lcdController = new LcdController(lcdc, stat, scx, scy, ly, lyc, bgp,
-                vram, oam, obp0, obp1, vblankInterrupt, lcdStatusInterrupt);
+                vram, oam, obp0, obp1, wy, wx, vblankInterrupt, lcdStatusInterrupt);
 
             //SkipBootrom();
 
@@ -166,6 +181,7 @@ namespace GameboyEmulator.Core.Emulation
             if (State.Halted)
             {
                 _lcdController.Tick();
+                _timerController.Tick();
                 ElapsedCycles += 1;
             }
             else
@@ -176,6 +192,7 @@ namespace GameboyEmulator.Core.Emulation
                 for (var i = 0; i < cycles; i++)
                 {
                     _lcdController.Tick();
+                    _timerController.Tick();
                 }
             }
 
