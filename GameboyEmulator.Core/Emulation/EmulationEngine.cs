@@ -98,7 +98,7 @@ namespace GameboyEmulator.Core.Emulation
 
             io.Add(0x0F, @if);
             io.Add(0xFF, ie);
-            
+
             //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/ttt.gb"),
             //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/DrMario.gb"),
             //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/gb-test-roms/cpu_instrs/cpu_instrs.gb"),
@@ -236,7 +236,11 @@ namespace GameboyEmulator.Core.Emulation
                     State.Registers.PC.Value = 0x0060;
                     State.Memory[0xFF0F] = State.Memory[0xFF0F].SetBit(4, false);
                 }
+            }
 
+            // HALT mode is always exited regardless of the state of the IME
+            if (firedInterrupts != 0)
+            {
                 State.Halted = false;
             }
         }
