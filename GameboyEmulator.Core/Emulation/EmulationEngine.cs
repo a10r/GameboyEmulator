@@ -103,7 +103,7 @@ namespace GameboyEmulator.Core.Emulation
             //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/DrMario.gb"),
             //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/gb-test-roms/cpu_instrs/cpu_instrs.gb"),
             //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/gb-test-roms/cpu_instrs/individual/02-interrupts.gb"),
-            var cartridge = CartridgeLoader.FromFile("C:/Users/Andreas/Dropbox/DMG/Tetris.gb");
+            var cartridge = CartridgeLoader.FromFile("C:/Users/Andreas/Dropbox/DMG/gb-test-roms/cpu_instrs/cpu_instrs.gb");
 
             var memoryMap = new TopLevelMemoryMap(
                 new ShadowedMemoryBlock(
@@ -175,7 +175,16 @@ namespace GameboyEmulator.Core.Emulation
 
             if (State.Stopped)
             {
-                Console.WriteLine("Stopped!");
+                // STOP mode is exited when a button is pressed.
+                // IF bit 4 is set when a button is pressed, so we can use that.
+                if (State.Memory[0xFF0F].GetBit(4))
+                {
+                    State.Stopped = false;
+                }
+                else
+                {
+                    return;
+                }
             }
 
             if (State.Halted)
