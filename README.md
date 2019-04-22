@@ -13,3 +13,8 @@ Passes blargg's CPU instruction tests, has graphics output and already plays a f
 - [x] Hardware timers
 - [ ] Sound
 - [x] Bank-switching cartridge support
+
+### Screenshots
+
+![Tetris](/misc/screenshot_tetris.PNG?raw=true)
+![Debugger](/misc/screenshot_debugger.PNG?raw=true)

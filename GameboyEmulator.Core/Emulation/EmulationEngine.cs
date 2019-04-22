@@ -103,7 +103,7 @@ namespace GameboyEmulator.Core.Emulation
             //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/DrMario.gb"),
             //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/gb-test-roms/cpu_instrs/cpu_instrs.gb"),
             //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/gb-test-roms/cpu_instrs/individual/02-interrupts.gb"),
-            var cartridge = CartridgeLoader.FromFile("C:/Users/Andreas/Dropbox/DMG/gb-test-roms/cpu_instrs/cpu_instrs.gb");
+            var cartridge = CartridgeLoader.FromFile("C:/Users/Andreas/Dropbox/DMG/Tetris.gb");
 
             var memoryMap = new TopLevelMemoryMap(
                 new ShadowedMemoryBlock(
