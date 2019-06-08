@@ -65,7 +65,7 @@
     <Compile Include="Memory\AddressableRegisterField.cs" />
     <Compile Include="Memory\BoolPointer.cs" />
     <Compile Include="Memory\LambdaMemoryBlock.cs" />
-    <Compile Include="Memory\MemoryPointer.cs" />
+    <Compile Include="Memory\MemoryLocation.cs" />
     <Compile Include="Memory\OamDmaController.cs" />
     <Compile Include="Processor\Cpu.cs" />
     <Compile Include="Debugger\Disassembler.cs" />
@@ -95,7 +95,6 @@
     <Compile Include="Memory\IWriteonlyRegister.cs" />
     <Compile Include="Processor\JumpCondition.cs" />
     <Compile Include="Memory\MemoryBlock.cs" />
-    <Compile Include="Memory\MemoryLocation.cs" />
     <Compile Include="Memory\PairedRegister.cs" />
     <Compile Include="Memory\Register.cs" />
     <Compile Include="Memory\RegisterField.cs" />

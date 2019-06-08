@@ -124,14 +124,14 @@ namespace GameboyEmulator.UI
             DisassembedProgramText = DisassembleAndFormat(50);
             EmulationIsRunning = _emulationControl.Running;
             
-            Tileset = LcdDebugUtils.RenderTileset(new MemoryPointer(State.Memory, 0x8000)).ToEtoBitmap();
+            Tileset = LcdDebugUtils.RenderTileset(new MemoryLocation(State.Memory, 0x8000)).ToEtoBitmap();
             // TODO can be cleaned up maybe
-            var tilesetSelect = new BoolPointer(new MemoryPointer(State.Memory, 0xFF40), 4);
+            var tilesetSelect = new BoolPointer(new MemoryLocation(State.Memory, 0xFF40), 4);
             var scy = State.Memory[0xFF42];
             var scx = State.Memory[0xFF43];
-            Tilemap0 = LcdDebugUtils.RenderTilemap(new MemoryPointer(State.Memory, 0x8000), new Register<bool>(false), tilesetSelect)
+            Tilemap0 = LcdDebugUtils.RenderTilemap(new MemoryLocation(State.Memory, 0x8000), new Register<bool>(false), tilesetSelect)
                 .DrawRectangle(scx, scy, 160, 144).ToEtoBitmap();
-            Tilemap1 = LcdDebugUtils.RenderTilemap(new MemoryPointer(State.Memory, 0x8000), new Register<bool>(true), tilesetSelect)
+            Tilemap1 = LcdDebugUtils.RenderTilemap(new MemoryLocation(State.Memory, 0x8000), new Register<bool>(true), tilesetSelect)
                 .DrawRectangle(scx, scy, 160, 144).ToEtoBitmap();
 
             OnPropertyChanged("State");
