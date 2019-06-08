@@ -11,6 +11,7 @@ using GameboyEmulator.Core.Utils;
 using GameboyEmulator.Core.Video;
 using GameboyEmulator.Core.Cartridge;
 using GameboyEmulator.Core.Timer;
+using System.Diagnostics;
 
 namespace GameboyEmulator.Core.Emulation
 {
@@ -145,6 +146,10 @@ namespace GameboyEmulator.Core.Emulation
 
         private long _c;
 
+        // Synchronization variables.
+        private int _targetClock = 4194304;
+        private int _syncsPerSecond = 4;
+        private Stopwatch _stopwatch = new Stopwatch();
 
         private void DumpLog()
         {
@@ -273,9 +278,31 @@ namespace GameboyEmulator.Core.Emulation
                 //    LogInstruction();
                 //}
 
+                _stopwatch.Restart();
+                var lastElapsed = ElapsedCycles;
+                var clockCounter = 0;
+                var syncTarget = _targetClock / _syncsPerSecond; // TODO possibly inaccurate if there is a remainder!
+                var phaseTime = 1000 / _syncsPerSecond;
+
                 try
                 {
                     Step();
+
+                    clockCounter += (int)(ElapsedCycles - lastElapsed);
+                    if (clockCounter >= syncTarget)
+                    {
+                        var elapsedTime = _stopwatch.ElapsedMilliseconds;
+                        if (elapsedTime <= phaseTime)
+                        {
+                            Thread.Sleep((int)(phaseTime - elapsedTime));
+                        }
+                        else
+                        {
+                            _logger.WriteLine("Slowdown!");
+                        }
+                        clockCounter -= syncTarget;
+                        _stopwatch.Restart();
+                    }
                 }
                 catch (Exception e)
                 {
