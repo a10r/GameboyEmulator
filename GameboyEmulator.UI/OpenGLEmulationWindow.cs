@@ -17,9 +17,29 @@ namespace GameboyEmulator.UI
         private const int DefaultWidth = 160;
         private const int DefaultHeight = 144;
 
+        private int _windowScaleFactor;
+        public int WindowScaleFactor
+        {
+            get => _windowScaleFactor;
+
+            set
+            {
+                if (value < 1)
+                {
+                    throw new ArgumentException("Invalid scaling factor.");
+                }
+                _windowScaleFactor = value;
+
+                // Set actual window size;
+                Width = value * DefaultWidth;
+                Height = value * DefaultHeight;
+
+                GL.Viewport(0, 0, Width, Height);
+            }
+        }
 
         private Bitmap _currentFrame;
-        
+
         // OpenGL handles.
         private int _textureId;
         private int _shaderProgram;
@@ -29,9 +49,7 @@ namespace GameboyEmulator.UI
         {
             VSync = VSyncMode.On;
             WindowBorder = WindowBorder.Fixed;
-            // For some reason this needs to be here as well, parameters in base constructor are not sufficient.
-            Width = DefaultWidth;
-            Height = DefaultHeight;
+            WindowScaleFactor = 1;
         }
 
         private string LoadShaderFromResources(string name)
@@ -68,8 +86,9 @@ namespace GameboyEmulator.UI
                 pos[0], tex[0],
                 pos[1], tex[1],
                 pos[2], tex[2],
-                pos[3], tex[3] };
-            
+                pos[3], tex[3]
+            };
+
             GL.GenBuffers(1, out int vertexBuffer);
             GL.BindBuffer(BufferTarget.ArrayBuffer, vertexBuffer);
             GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * Marshal.SizeOf(typeof(Vector2)), 

@@ -53,6 +53,13 @@ namespace GameboyEmulator.UI
                     case Key.C: emulator.Buttons.B = true; break;
                     case Key.V: emulator.Buttons.Start = true; break;
                     case Key.B: emulator.Buttons.Select = true; break;
+
+                    // Window scaling
+                    case Key.Number1: emuWindow.WindowScaleFactor = 1; break;
+                    case Key.Number2: emuWindow.WindowScaleFactor = 2; break;
+                    case Key.Number3: emuWindow.WindowScaleFactor = 3; break;
+                    case Key.Number4: emuWindow.WindowScaleFactor = 4; break;
+                    case Key.Number5: emuWindow.WindowScaleFactor = 5; break;
                 }
             };
 
