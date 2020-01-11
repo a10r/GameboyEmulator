@@ -24,7 +24,7 @@ namespace GameboyEmulator.Core.Emulation
 
         public IButtonState Buttons { get; }
 
-        public EmulationEngine()
+        public EmulationEngine(string bootromFile, string romFile)
         {
             _logger = Console.Out;
             
@@ -100,15 +100,11 @@ namespace GameboyEmulator.Core.Emulation
             io.Add(0x0F, @if);
             io.Add(0xFF, ie);
 
-            //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/ttt.gb"),
-            //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/DrMario.gb"),
-            //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/gb-test-roms/cpu_instrs/cpu_instrs.gb"),
-            //MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/gb-test-roms/cpu_instrs/individual/02-interrupts.gb"),
-            var cartridge = CartridgeLoader.FromFile("C:/Users/Andreas/Dropbox/DMG/Tetris.gb");
+            var cartridge = CartridgeLoader.FromFile(romFile);
 
             var memoryMap = new TopLevelMemoryMap(
                 new ShadowedMemoryBlock(
-                    MemoryBlock.LoadFromFile("C:/Users/Andreas/Dropbox/DMG/DMG_ROM.bin"),
+                    MemoryBlock.LoadFromFile(bootromFile),
                     cartridge.ROM,
                     new BoolPointer(bootromEnable, 0)
                     ),

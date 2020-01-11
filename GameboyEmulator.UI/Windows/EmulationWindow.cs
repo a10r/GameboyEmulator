@@ -4,15 +4,20 @@ using Eto.Drawing;
 using Eto.Forms;
 using GameboyEmulator.Core.Emulation;
 using GameboyEmulator.UI.Util;
+using GameboyEmulator.UI.Windows;
 
 namespace GameboyEmulator.UI
 {
     [Obsolete("Use OpenGLEmulationWindow instead.")]
     public class EmulationWindow : Form
     {
-        public EmulationWindow()
+        public EmulationWindow(LaunchDialogResult launchOptions)
         {
-            var emulator = new EmulationEngine { Running = true };
+            var emulator = new EmulationEngine(launchOptions.BootromFile, launchOptions.RomFile)
+            {
+                Running = true
+            };
+
             Task.Run(() => emulator.Run());
 
             // Debug window
@@ -62,7 +67,7 @@ namespace GameboyEmulator.UI
                     if (emulator.Running)
                     {
                         var newTitle = $"Debugger ({(float)elapsed / 1000000} MHz, {frameCount} fps)";
-                        Application.Instance.AsyncInvoke(() => 
+                        Application.Instance.AsyncInvoke(() =>
                         {
                             debugWindow.Title = newTitle;
                         });
@@ -80,7 +85,7 @@ namespace GameboyEmulator.UI
                 Application.Instance.AsyncInvoke(() =>
                 {
                     imageView.Image = args.Frame.ToEtoBitmap();
-                    
+
                     debugViewModel.Refresh();
                 });
             };

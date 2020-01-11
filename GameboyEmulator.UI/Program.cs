@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using GameboyEmulator.Core.Emulation;
 using OpenTK.Input;
+using GameboyEmulator.UI.Windows;
 
 namespace GameboyEmulator.UI
 {
@@ -16,10 +17,35 @@ namespace GameboyEmulator.UI
         [STAThread]
         private static void Main()
         {
+            var bootromFile = "C:/Users/Andreas/Dropbox/DMG/DMG_ROM.bin";
+            var romFile = "C:/Users/Andreas/Dropbox/DMG/Tetris.gb";
+
             Style.Add<TextBox>("data-field", box => box.Font = new Font("monospace", 10));
             Style.Add<RichTextArea>("data-field", area => area.Font = new Font("monospace", 10));
 
-            var emulator = new EmulationEngine { Running = true };
+            var app = new Application();
+
+            var viewModel = new LaunchDialogViewModel()
+            {
+                BootromFile = bootromFile,
+                RomFile = romFile
+            };
+
+            var dialog = new LaunchDialog(viewModel);
+            var result = dialog.ShowModal();
+
+            if (result != null)
+            {
+                DoEmulation(result);
+            }
+        }
+
+        private static void DoEmulation(LaunchDialogResult launchOptions)
+        {
+            var emulator = new EmulationEngine(launchOptions.BootromFile, launchOptions.RomFile)
+            {
+                Running = true
+            };
             Task.Run(() => emulator.Run());
 
             var emuWindow = new OpenGLEmulationWindow();
@@ -62,9 +88,6 @@ namespace GameboyEmulator.UI
                     case Key.Number5: emuWindow.WindowScaleFactor = 5; break;
                 }
             };
-
-            var app = new Application();
-            app.Attach();
 
             var debugViewModel = new DebugWindowViewModel(emulator.State, emulator);
             var debugWindow = new DebugWindow(debugViewModel);

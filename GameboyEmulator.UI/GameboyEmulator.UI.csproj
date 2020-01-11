@@ -69,8 +69,11 @@
     <Compile Include="Controls\RegisterFieldControl.cs" />
     <Compile Include="Windows\DebugWindow.cs" />
     <Compile Include="Windows\DebugWindowViewModel.cs" />
+    <Compile Include="Windows\LaunchDialog.cs" />
+    <Compile Include="Windows\LaunchDialogViewModel.cs" />
+    <Compile Include="Windows\LaunchDialogResult.cs" />
     <Compile Include="Windows\OpenGLEmulationWindow.cs" />
-    <Compile Include="Windows\MainWindow.cs" />
+    <Compile Include="Windows\EmulationWindow.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Util\BitmapUtils.cs" />
