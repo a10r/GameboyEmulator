@@ -63,17 +63,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AutoLoadingRichTextArea.cs" />
+    <Compile Include="Controls\AutoLoadingRichTextArea.cs" />
     <Compile Include="Controls\DisassemblerControl.cs" />
     <Compile Include="Controls\EmulationControl.cs" />
     <Compile Include="Controls\RegisterFieldControl.cs" />
-    <Compile Include="DebugWindow.cs" />
-    <Compile Include="DebuggerViewModel.cs" />
-    <Compile Include="OpenGLEmulationWindow.cs" />
-    <Compile Include="MainWindow.cs" />
+    <Compile Include="Windows\DebugWindow.cs" />
+    <Compile Include="Windows\DebugWindowViewModel.cs" />
+    <Compile Include="Windows\OpenGLEmulationWindow.cs" />
+    <Compile Include="Windows\MainWindow.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TestWindow.cs" />
     <Compile Include="Util\BitmapUtils.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -89,6 +88,7 @@
       <Name>GameboyEmulator.Core</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

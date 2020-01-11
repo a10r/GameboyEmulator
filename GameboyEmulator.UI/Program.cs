@@ -18,7 +18,7 @@ namespace GameboyEmulator.UI
         {
             Style.Add<TextBox>("data-field", box => box.Font = new Font("monospace", 10));
             Style.Add<RichTextArea>("data-field", area => area.Font = new Font("monospace", 10));
-            
+
             var emulator = new EmulationEngine { Running = true };
             Task.Run(() => emulator.Run());
 
@@ -65,7 +65,8 @@ namespace GameboyEmulator.UI
 
             var app = new Application();
             app.Attach();
-            var debugViewModel = new DebuggerViewModel(emulator.State, emulator);
+
+            var debugViewModel = new DebugWindowViewModel(emulator.State, emulator);
             var debugWindow = new DebugWindow(debugViewModel);
             debugWindow.Show();
 
@@ -74,7 +75,7 @@ namespace GameboyEmulator.UI
             Task.Run(async () =>
             {
                 long last = emulator.ElapsedCycles;
-                while (true)
+                while (!emuWindow.IsExiting)
                 {
                     await Task.Delay(1000);
                     var elapsed = emulator.ElapsedCycles - last;

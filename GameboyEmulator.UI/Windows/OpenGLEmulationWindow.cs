@@ -91,7 +91,7 @@ namespace GameboyEmulator.UI
 
             GL.GenBuffers(1, out int vertexBuffer);
             GL.BindBuffer(BufferTarget.ArrayBuffer, vertexBuffer);
-            GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * Marshal.SizeOf(typeof(Vector2)), 
+            GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * Marshal.SizeOf(typeof(Vector2)),
                 vertices, BufferUsageHint.StaticDraw);
 
             return vertexBuffer;
@@ -183,9 +183,9 @@ namespace GameboyEmulator.UI
             base.OnRenderFrame(e);
 
             UpdateTexture(_currentFrame);
-            
+
             GL.Clear(ClearBufferMask.ColorBufferBit);
-            
+
             GL.UseProgram(_shaderProgram);
             GL.BindVertexArray(_vertexArray);
             GL.BindTexture(TextureTarget.Texture2D, _textureId);
@@ -209,7 +209,7 @@ namespace GameboyEmulator.UI
                     PixelFormat.Rgb, PixelType.UnsignedByte, pinned.Pointer);
             }
         }
-        
+
         public void SetNextFrame(Bitmap newFrame)
         {
             _currentFrame = newFrame.Clone();

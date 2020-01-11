@@ -11,7 +11,7 @@ using GameboyEmulator.Core.Video;
 
 namespace GameboyEmulator.UI
 {
-    public class DebuggerViewModel : INotifyPropertyChanged
+    public class DebugWindowViewModel : INotifyPropertyChanged
     {
         private readonly IEmulationControl _emulationControl;
         private string _disassembedProgramText;
@@ -20,7 +20,7 @@ namespace GameboyEmulator.UI
         private EtoBitmap _tilemap1;
         private EtoBitmap _tilemap2;
 
-        public DebuggerViewModel(IMachineState state, IEmulationControl emulationControl)
+        public DebugWindowViewModel(IMachineState state, IEmulationControl emulationControl)
         {
             State = state;
             _emulationControl = emulationControl;

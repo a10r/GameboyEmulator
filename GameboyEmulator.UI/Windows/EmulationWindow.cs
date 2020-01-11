@@ -8,15 +8,15 @@ using GameboyEmulator.UI.Util;
 namespace GameboyEmulator.UI
 {
     [Obsolete("Use OpenGLEmulationWindow instead.")]
-    public class MainWindow : Form
+    public class EmulationWindow : Form
     {
-        public MainWindow()
+        public EmulationWindow()
         {
             var emulator = new EmulationEngine { Running = true };
             Task.Run(() => emulator.Run());
 
             // Debug window
-            var debugViewModel = new DebuggerViewModel(emulator.State, emulator);
+            var debugViewModel = new DebugWindowViewModel(emulator.State, emulator);
             var debugWindow = new DebugWindow(debugViewModel);
             debugWindow.Show();
 
