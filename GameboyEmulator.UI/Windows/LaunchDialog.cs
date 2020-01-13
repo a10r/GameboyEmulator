@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Linq.Expressions;
 using Eto.Drawing;
 using Eto.Forms;
+using GameboyEmulator.Core.Utils;
 
 namespace GameboyEmulator.UI.Windows
 {
@@ -15,32 +17,10 @@ namespace GameboyEmulator.UI.Windows
             };
 
             // Row 1: Boot ROM File Picker
-            var bootromPickLabel = new Label() { Text = "Pick boot ROM:", VerticalAlignment = VerticalAlignment.Center };
-            var bootromFileTextBox = new TextBox() { Width = 300 };
-            bootromFileTextBox.TextBinding.BindDataContext<LaunchDialogViewModel>(v => v.BootromFile);
-            var bootromFilePicker = new Button() { Text = "...", Width = 30 };
-            bootromFilePicker.Click += (s, a) =>
-            {
-                var dialog = new OpenFileDialog();
-                var result = dialog.ShowDialog(this);
-                viewModel.BootromFile = dialog.FileName;
-            };
-
-            layout.AddRow(bootromPickLabel, bootromFileTextBox, bootromFilePicker);
+            layout.AddRow(FilePickerControls(viewModel, "Pick boot ROM:", vm => vm.BootromFile));
 
             // Row 2: ROM File Picker
-            var romPickLabel = new Label() { Text = "Pick ROM:", VerticalAlignment = VerticalAlignment.Center };
-            var romFileTextBox = new TextBox() { Width = 300 };
-            romFileTextBox.TextBinding.BindDataContext<LaunchDialogViewModel>(v => v.RomFile);
-            var romFilePicker = new Button() { Text = "...", Width = 30 };
-            romFilePicker.Click += (s, a) =>
-            {
-                var dialog = new OpenFileDialog();
-                var result = dialog.ShowDialog(this);
-                viewModel.RomFile = dialog.FileName;
-            };
-
-            layout.AddRow(romPickLabel, romFileTextBox, romFilePicker);
+            layout.AddRow(FilePickerControls(viewModel, "Pick ROM:", vm => vm.RomFile));
 
             // Row 3: Launch button
             var launchButton = new Button() { Text = "Launch" };
@@ -50,6 +30,26 @@ namespace GameboyEmulator.UI.Windows
 
             Content = layout;
             DataContext = viewModel;
+        }
+
+        private Control[] FilePickerControls(LaunchDialogViewModel viewModel, string label,
+            Expression<Func<LaunchDialogViewModel, string>> propertyExpression)
+        {
+            var pickLabel = new Label() { Text = label, VerticalAlignment = VerticalAlignment.Center };
+            var fileTextBox = new TextBox() { Width = 300 };
+            fileTextBox.TextBinding.BindDataContext<LaunchDialogViewModel>(propertyExpression);
+            var filePicker = new Button() { Text = "...", Width = 30 };
+            filePicker.Click += (s, a) =>
+            {
+                var dialog = new OpenFileDialog();
+                var result = dialog.ShowDialog(this);
+                if (result == DialogResult.Ok)
+                {
+                    ReflectionUtils.SetProperty(viewModel, dialog.FileName, propertyExpression);
+                }
+            };
+
+            return new Control[] { pickLabel, fileTextBox, filePicker };
         }
 
         private void OnLaunchClick(LaunchDialogViewModel viewModel)
